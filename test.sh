@@ -19,6 +19,6 @@ try(){
     fi
 }
 
-try 0 0
-try 123 123
+try 5 '2+3'
+try 1 '12-11'
 echo ok
