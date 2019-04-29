@@ -15,7 +15,15 @@ typedef struct{
   char *input;
 } Token;
 
+typedef struct Node{
+  int ty;
+  struct Node *lhs;
+  struct Node *rhs;  
+  int val;
+} Node;
+
 Token tokens[100];
+Node *nodes[100];
 
 void error(char* fmt, ...){
   va_list ap;
@@ -23,6 +31,78 @@ void error(char* fmt, ...){
   vfprintf(stderr, fmt, ap);
   fprintf(stderr, "\n");
   exit(1);
+}
+
+Node *new_node(int ty, Node *lhs, Node *rhs){
+  Node* n = malloc(sizeof(Node));
+  n->ty = ty;
+  n->lhs = lhs;
+  n->rhs = rhs;
+  return n;
+}
+
+Node *new_node_num(int val){
+  Node* n = malloc(sizeof(Node));
+  n->ty = TK_NUM;
+  n->val = val;
+  return n;
+}
+
+int pos = 0;
+
+int consume(int ty){
+  if(tokens[pos].ty != ty)
+    return 0;
+  pos++;
+  return 1;
+}
+
+Node *add();
+Node *mul();
+Node *term();
+
+Node* term(){
+  if(consume('(')){
+    Node *n = add();
+    if(consume(')')){
+      error("unexpected branket `)`");
+      exit(1);
+    }
+    return n;
+  }
+  
+  if(tokens[pos].ty == TK_NUM){
+    return new_node_num(tokens[pos++].val);
+  }
+
+  error("数値でも開きカッコでもないトークンです: %s", tokens[pos].input);
+  exit(1);
+}
+
+Node* mul(){
+  Node *n = term();
+  for(;;){
+    if(consume('*')){
+      n = new_node('*', n, term());
+    }else if(consume('/')){
+      n = new_node('/', n, term());
+    }else{
+      return n;
+    }
+  }
+}
+
+Node *add(){
+  Node *n = mul();
+  for(;;){
+    if(consume('+')){
+      n = new_node('+', n, mul());
+    }else if(consume('-')){
+      n = new_node('-', n, mul());
+    }else{
+      return n;
+    } 
+  }
 }
 
 void tokenize(char *p){
@@ -34,7 +114,7 @@ void tokenize(char *p){
       continue;
     }
     
-    if(*p == '+' || *p == '-'){
+    if(*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' || *p == ')'){
       tokens[i].ty = *p;
       tokens[i].input = p;
       i++;
@@ -58,6 +138,35 @@ void tokenize(char *p){
   tokens[i].input = p;
 }
 
+void gen(Node *node){
+  if(node->ty == TK_NUM){
+    printf("  push %d\n", node->val);
+    return;
+  }
+
+  gen(node->lhs);
+  gen(node->rhs);
+
+  printf("  pop rdi\n");
+  printf("  pop rax\n");
+  
+  switch(node->ty){
+  case '+':
+    printf("  add rax, rdi\n");
+    break;
+  case '-':
+    printf("  sub rax, rdi\n");
+    break;
+  case '*':
+    printf("  mul rdi\n");
+    break;
+  case '/':
+    printf("  mov rdx, 0\n");
+    printf("  div rdi\n");
+    break;
+  }
+  printf("  push rax\n");
+}
 
 int main(int argc, char **argv) {
   if (argc != 2) {
@@ -71,31 +180,11 @@ int main(int argc, char **argv) {
 
   tokenize(argv[1]);
 
-  if(tokens[0].ty == TK_NUM){
-    printf("  mov rax, %d\n", tokens[0].val);
-  }
+  pos = 0;
+  Node *n = add();
+  gen(n);
 
-  int i=1;
-  while(tokens[i].ty != TK_NUM){
-    if(tokens[i].ty == '+'){
-      i++;
-      if(tokens[i].ty != TK_NUM) error("unexpected token %c\n", *tokens[i].input);
-      printf("  add rax, %d\n", tokens[i].val);
-      i++;
-      continue;
-    }
-
-    if(tokens[i].ty == '-'){
-      i++;
-      if(tokens[i].ty != TK_NUM) error("unexpected token %c\n", *tokens[i].input);
-      printf("  sub rax, %d\n", tokens[i].val);
-      i++;
-      continue;
-    }
-    
-    fprintf(stderr, "unexpected token %c\n", *tokens[i].input);
-  }
-  
+  printf("  pop rax\n");
   printf("  ret\n");
   return 0;  
 }
