@@ -64,7 +64,7 @@ Node *term();
 Node* term(){
   if(consume('(')){
     Node *n = add();
-    if(consume(')')){
+    if(!consume(')')){
       error("unexpected branket `)`");
       exit(1);
     }
