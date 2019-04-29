@@ -79,13 +79,22 @@ Node* term(){
   exit(1);
 }
 
+Node* unary(){
+  if(consume('+')){
+    return term();
+  }else if(consume('-')){
+    return new_node('-', new_node_num(0), term());
+  }
+  return term();
+}
+
 Node* mul(){
-  Node *n = term();
+  Node *n = unary();
   for(;;){
     if(consume('*')){
-      n = new_node('*', n, term());
+      n = new_node('*', n, unary());
     }else if(consume('/')){
-      n = new_node('/', n, term());
+      n = new_node('/', n, unary());
     }else{
       return n;
     }
