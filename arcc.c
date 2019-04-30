@@ -8,6 +8,8 @@ enum{
   TK_NUM = 256,
   TK_EQL,
   TK_NEQ,
+  TK_LE,
+  TK_GE,
   TK_EOF
 };
 
@@ -118,13 +120,26 @@ Node *add(){
   }
 }
 
-Node *equality(){
+Node* relational(){
   Node *n = add();
   for(;;){
+    if(consume('<')){
+      n = new_node('<', n, add());
+    }else if(consume(TK_LE)){
+      n = new_node(TK_LE, n, add());
+    }else{
+      return n;
+    }
+  }
+}
+
+Node *equality(){
+  Node *n = relational();
+  for(;;){
     if(consume(TK_EQL)){
-      n = new_node(TK_EQL, n, add());
+      n = new_node(TK_EQL, n, relational());
     }else if(consume(TK_NEQ)){
-      n = new_node(TK_NEQ, n, add());
+      n = new_node(TK_NEQ, n, relational());
     }else{
       return n;
     }
@@ -136,14 +151,6 @@ void tokenize(char *p){
   while(*p){
 
     if(isspace(*p)){
-      p++;
-      continue;
-    }
-    
-    if(*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' || *p == ')'){
-      tokens[i].ty = *p;
-      tokens[i].input = p;
-      i++;
       p++;
       continue;
     }
@@ -163,7 +170,24 @@ void tokenize(char *p){
       p+=2;
       continue;      
     }
+
+    if(*p == '<' && *(p+1) == '='){
+      tokens[i].ty = TK_LE;
+      tokens[i].input = "<=";
+      i++;
+      p+=2;
+      continue;      
+    }
     
+    
+    if(*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' || *p == ')' || *p == '<'){
+      tokens[i].ty = *p;
+      tokens[i].input = p;
+      i++;
+      p++;
+      continue;
+    }
+
     if(isdigit(*p)){
       tokens[i].ty = TK_NUM;
       tokens[i].input = p;
@@ -172,7 +196,7 @@ void tokenize(char *p){
       continue;
     }
 
-    error("cannot tokenize %c", p);
+    error("cannot tokenize char:`%c`", p);
     exit(1);
   }
 
@@ -215,6 +239,16 @@ void gen(Node *node){
     printf("  cmp rax, rdi\n");
     printf("  setne al\n");
     printf("  movzx rax, al\n");    
+    break;
+  case '<':
+    printf("  cmp rax, rdi\n");
+    printf("  setl al\n");
+    printf("  movzx rax, al\n");    
+    break;
+  case TK_LE:
+    printf("  cmp rax, rdi\n");
+    printf("  setle al\n");
+    printf("  movzx rax, al\n");        
     break;
   }
   printf("  push rax\n");
