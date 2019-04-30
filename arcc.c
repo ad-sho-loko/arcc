@@ -7,6 +7,7 @@
 enum{
   TK_NUM = 256,
   TK_EQL,
+  TK_NEQ,
   TK_EOF
 };
 
@@ -122,6 +123,8 @@ Node *equality(){
   for(;;){
     if(consume(TK_EQL)){
       n = new_node(TK_EQL, n, add());
+    }else if(consume(TK_NEQ)){
+      n = new_node(TK_NEQ, n, add());
     }else{
       return n;
     }
@@ -151,6 +154,14 @@ void tokenize(char *p){
       i++;
       p+=2;
       continue;
+    }
+
+    if(*p == '!' && *(p+1) == '='){
+      tokens[i].ty = TK_NEQ;
+      tokens[i].input = "!=";
+      i++;
+      p+=2;
+      continue;      
     }
     
     if(isdigit(*p)){
@@ -199,6 +210,11 @@ void gen(Node *node){
     printf("  cmp rax, rdi\n");
     printf("  sete al\n");
     printf("  movzx rax, al\n");
+    break;
+  case TK_NEQ:
+    printf("  cmp rax, rdi\n");
+    printf("  setne al\n");
+    printf("  movzx rax, al\n");    
     break;
   }
   printf("  push rax\n");
