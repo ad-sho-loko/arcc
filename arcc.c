@@ -127,8 +127,13 @@ Node* relational(){
       n = new_node('<', n, add());
     }else if(consume(TK_LE)){
       n = new_node(TK_LE, n, add());
+    }else if(consume('>')){
+      n = new_node(TK_LE, add(), n);
+    }else if(consume(TK_LE)){
+      n = new_node(TK_LE, add(), n);
     }else{
       return n;
+      
     }
   }
 }
@@ -178,9 +183,16 @@ void tokenize(char *p){
       p+=2;
       continue;      
     }
+
+    if(*p == '>' && *(p+1) == '='){
+      tokens[i].ty = TK_GE;
+      tokens[i].input = ">=";
+      i++;
+      p+=2;
+      continue;      
+    }
     
-    
-    if(*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' || *p == ')' || *p == '<'){
+    if(*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' || *p == ')' || *p == '<' || *p == '>'){
       tokens[i].ty = *p;
       tokens[i].input = p;
       i++;
