@@ -14,6 +14,7 @@ try(){
     if [ "$actual" = "$expected" ]; then
         echo "$input => $actual"
     else
+        echo "[Failed] $input => $actual"
         echo "$expected is expected, but $actual"
         exit 1
     fi
@@ -27,4 +28,6 @@ try 8 '24 / 3'
 try 10 '2 * (3 + 2)'
 try 3 '-5 + 8'
 try 100 '+100 + 0'
+try 0 '4 == 1'
+try 1 '1 == 1'
 echo ok

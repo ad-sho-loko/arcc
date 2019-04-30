@@ -6,6 +6,7 @@
 
 enum{
   TK_NUM = 256,
+  TK_EQL,
   TK_EOF
 };
 
@@ -60,10 +61,12 @@ int consume(int ty){
 Node *add();
 Node *mul();
 Node *term();
+Node *unary();
+Node *equality();
 
 Node* term(){
   if(consume('(')){
-    Node *n = add();
+    Node *n = equality();
     if(!consume(')')){
       error("unexpected branket `)`");
       exit(1);
@@ -114,6 +117,17 @@ Node *add(){
   }
 }
 
+Node *equality(){
+  Node *n = add();
+  for(;;){
+    if(consume(TK_EQL)){
+      n = new_node(TK_EQL, n, add());
+    }else{
+      return n;
+    }
+  }
+}
+
 void tokenize(char *p){
   int i = 0;
   while(*p){
@@ -131,6 +145,14 @@ void tokenize(char *p){
       continue;
     }
 
+    if(*p == '=' && *(p+1) == '='){
+      tokens[i].ty = TK_EQL;
+      tokens[i].input = "==";
+      i++;
+      p+=2;
+      continue;
+    }
+    
     if(isdigit(*p)){
       tokens[i].ty = TK_NUM;
       tokens[i].input = p;
@@ -173,6 +195,11 @@ void gen(Node *node){
     printf("  mov rdx, 0\n");
     printf("  div rdi\n");
     break;
+  case TK_EQL:
+    printf("  cmp rax, rdi\n");
+    printf("  sete al\n");
+    printf("  movzx rax, al\n");
+    break;
   }
   printf("  push rax\n");
 }
@@ -190,7 +217,7 @@ int main(int argc, char **argv) {
   tokenize(argv[1]);
 
   pos = 0;
-  Node *n = add();
+  Node *n = equality();
   gen(n);
 
   printf("  pop rax\n");
