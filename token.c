@@ -1,7 +1,16 @@
 #include <ctype.h>
 #include "arcc.h"
 
-void tokenize(char *p){
+static Token *new_token(int ty, char* input, int val){
+  Token *t = malloc(sizeof(Token));
+  t->ty = ty;
+  t->input = input;
+  t->val = val;
+  return t;
+}
+
+Vector *tokenize(char *p){
+  Vector* tokens = new_vector();
   int i = 0;
 
   while(*p){
@@ -12,56 +21,48 @@ void tokenize(char *p){
     }
 
     if(*p == '=' && *(p+1) == '='){
-      tokens[i].ty = TK_EQL;
-      tokens[i].input = "==";
+      push_back(tokens, new_token(TK_EQL, "==", 0));
       i++;
       p+=2;
       continue;
     }
 
     if(*p == '!' && *(p+1) == '='){
-      tokens[i].ty = TK_NEQ;
-      tokens[i].input = "!=";
+      push_back(tokens, new_token(TK_NEQ, "!=", 0));
       i++;
       p+=2;
       continue;      
     }
 
     if(*p == '<' && *(p+1) == '='){
-      tokens[i].ty = TK_LE;
-      tokens[i].input = "<=";
+      push_back(tokens, new_token(TK_LE, "<=", 0));
       i++;
       p+=2;
       continue;      
     }
 
     if(*p == '>' && *(p+1) == '='){
-      tokens[i].ty = TK_GE;
-      tokens[i].input = ">=";
+      push_back(tokens, new_token(TK_GE, ">=", 0));
       i++;
       p+=2;
       continue;      
     }
     
     if(*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' || *p == ')' || *p == '<' || *p == '>' || *p == ';'){
-      tokens[i].ty = *p;
-      tokens[i].input = p;
+      push_back(tokens, new_token(*p, p, 0));
       i++;
       p++;
       continue;
     }
 
     if(isdigit(*p)){
-      tokens[i].ty = TK_NUM;
-      tokens[i].input = p;
-      tokens[i].val = strtol(p, &p ,10);
+      push_back(tokens, new_token(TK_NUM, p, strtol(p, &p ,10)));
       i++;
       continue;
     }
 
     if(*p >= 'a' && *p <= 'z'){
-      tokens[i].ty = TK_IDENT;
-      tokens[i].input = p;
+      push_back(tokens, new_token(TK_IDENT, p, 0));
       i++;
       p++;
       continue;
@@ -71,6 +72,6 @@ void tokenize(char *p){
     exit(1);
   }
 
-  tokens[i].ty = TK_EOF;
-  tokens[i].input = p;
+  push_back(tokens, new_token(TK_EOF, p, 0));
+  return tokens;
 }

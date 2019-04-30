@@ -18,7 +18,7 @@ Node *new_node_num(int val){
 }
 
 int consume(int ty){
-  if(tokens[pos].ty != ty)
+  if(((Token*)tokens->data[pos])->ty != ty)
     return 0;
   pos++;
   return 1;
@@ -34,11 +34,11 @@ Node* term(){
     return n;
   }
   
-  if(tokens[pos].ty == TK_NUM){
-    return new_node_num(tokens[pos++].val);
+  if(((Token*)tokens->data[pos])->ty == TK_NUM){
+    return new_node_num(((Token*)tokens->data[pos++])->val);
   }
   
-  error("数値でも開きカッコでもないトークンです: %s", tokens[pos].input);
+  error("数値でも開きカッコでもないトークンです: %s", ((Token*)(tokens->data[pos]))->input);
   exit(1);
 }
 
@@ -117,7 +117,7 @@ Node *assign(){
 Node *stmt(){
   Node *n = assign();
   if(!consume(';')){
-    error(";ではないトークンです %s.", tokens[pos].input);
+    error(";ではないトークンです %s.", ((Token*)tokens->data[pos])->input);
     exit(1);
   }
   return n;
@@ -125,7 +125,7 @@ Node *stmt(){
 
 void program(){
   int i = 0;
-  while(tokens[pos].ty != TK_EOF){
+  while(((Token*)tokens->data[pos])->ty != TK_EOF){
     codes[i++] = stmt();
   }
   codes[i] = NULL;

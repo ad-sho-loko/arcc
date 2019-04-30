@@ -23,8 +23,15 @@ typedef struct Node{
   int val;
 } Node;
 
-extern Token tokens[100];
-extern Node *codes[100];
+// A variable-length array.
+typedef struct {
+  void **data;
+  int32_t cap;
+  int32_t len;
+} Vector;
+
+Vector *new_vector();
+void push_back(Vector *v, void* elm);
 
 void error(char* fmt, ...);
 Node *add();
@@ -35,14 +42,8 @@ Node *equality();
 Node *assign();
 Node *stmt();
 void program();
-void tokenize(char *p);
+Vector *tokenize(char *p);
 void gen(Node *n);
-
-// A variable-length array.
-typedef struct {
-  void **data;
-  int32_t cap;
-  int32_t len;
-} Vector;
-
-// hash map.
+  
+extern Node *codes[100];
+extern Vector *tokens;
