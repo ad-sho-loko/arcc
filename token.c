@@ -1,10 +1,9 @@
 #include <ctype.h>
 #include "arcc.h"
 
-Token tokens[100];
-
 void tokenize(char *p){
   int i = 0;
+
   while(*p){
 
     if(isspace(*p)){
@@ -44,7 +43,7 @@ void tokenize(char *p){
       continue;      
     }
     
-    if(*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' || *p == ')' || *p == '<' || *p == '>'){
+    if(*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' || *p == ')' || *p == '<' || *p == '>' || *p == ';'){
       tokens[i].ty = *p;
       tokens[i].input = p;
       i++;
@@ -60,10 +59,18 @@ void tokenize(char *p){
       continue;
     }
 
-    error("cannot tokenize char:`%c`", p);
+    if(*p >= 'a' && *p <= 'z'){
+      tokens[i].ty = TK_IDENT;
+      tokens[i].input = p;
+      i++;
+      p++;
+      continue;
+    }
+    
+    error("cannot tokenize %c", p);
     exit(1);
   }
 
-  tokens[i].ty = TK_NUM;
+  tokens[i].ty = TK_EOF;
   tokens[i].input = p;
 }

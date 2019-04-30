@@ -6,6 +6,7 @@ enum{
   TK_NEQ,
   TK_LE,
   TK_GE,
+  TK_IDENT,
   TK_EOF
 };
 
@@ -23,7 +24,7 @@ typedef struct Node{
 } Node;
 
 extern Token tokens[100];
-extern Node *nodes[100];
+extern Node *codes[100];
 
 void error(char* fmt, ...);
 Node *add();
@@ -31,6 +32,9 @@ Node *mul();
 Node *term();
 Node *unary();
 Node *equality();
+Node *assign();
+Node *stmt();
+void program();
 void tokenize(char *p);
 void gen(Node *n);
 

@@ -26,7 +26,7 @@ int consume(int ty){
 
 Node* term(){
   if(consume('(')){
-    Node *n = equality();
+    Node *n = assign();
     if(!consume(')')){
       error("unexpected branket `)`");
       exit(1);
@@ -37,7 +37,7 @@ Node* term(){
   if(tokens[pos].ty == TK_NUM){
     return new_node_num(tokens[pos++].val);
   }
-
+  
   error("数値でも開きカッコでもないトークンです: %s", tokens[pos].input);
   exit(1);
 }
@@ -86,11 +86,10 @@ Node* relational(){
       n = new_node(TK_LE, n, add());
     }else if(consume('>')){
       n = new_node(TK_LE, add(), n);
-    }else if(consume(TK_LE)){
+    }else if(consume(TK_GE)){
       n = new_node(TK_LE, add(), n);
     }else{
-      return n;
-      
+      return n;      
     }
   }
 }
@@ -107,3 +106,28 @@ Node *equality(){
     }
   }
 }
+
+Node *assign(){
+  Node *n = equality();
+  while(consume('='))
+    n = new_node('=', n, assign());
+  return n;
+}
+
+Node *stmt(){
+  Node *n = assign();
+  if(!consume(';')){
+    error(";ではないトークンです %s.", tokens[pos].input);
+    exit(1);
+  }
+  return n;
+}
+
+void program(){
+  int i = 0;
+  while(tokens[pos].ty != TK_EOF){
+    codes[i++] = stmt();
+  }
+  codes[i] = NULL;
+}
+
