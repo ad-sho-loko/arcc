@@ -26,8 +26,8 @@ typedef struct Node{
 // A variable-length array.
 typedef struct {
   void **data;
-  int32_t cap;
-  int32_t len;
+  int cap;
+  int len;
 } Vector;
 
 Vector *new_vector();

@@ -30,22 +30,22 @@ void gen(Node *node){
   case TK_EQL:
     printf("  cmp rax, rdi\n");
     printf("  sete al\n");
-    printf("  movzx rax, al\n");
+    printf("  movzb rax, al\n");
     break;
   case TK_NEQ:
     printf("  cmp rax, rdi\n");
     printf("  setne al\n");
-    printf("  movzx rax, al\n");    
+    printf("  movzb rax, al\n");    
     break;
   case '<':
     printf("  cmp rax, rdi\n");
     printf("  setl al\n");
-    printf("  movzx rax, al\n");    
+    printf("  movzb rax, al\n");    
     break;
   case TK_LE:
     printf("  cmp rax, rdi\n");
     printf("  setle al\n");
-    printf("  movzx rax, al\n");        
+    printf("  movzb rax, al\n");        
     break;
   }
   printf("  push rax\n");
