@@ -1,9 +1,26 @@
 #include <stdio.h>
 #include "arcc.h"
 
+void gen_lval(Node *node){
+  if(node->ty != TK_IDENT)
+    error("左辺は変数でなければいけません");
+  int offset = 'z' - (node->name + 1) * 8;
+  printf("  mov rax, rbp\n");
+  printf("  sub rax, %d\n", offset);
+  printf("  push rax\n");
+}
+
 void gen(Node *node){
   if(node->ty == TK_NUM){
     printf("  push %d\n", node->val);
+    return;
+  }
+
+  if(node->ty == TK_IDENT){
+    gen_lval(node);
+    printf("  pop rax\n");
+    printf("  mov rax, [rax]\n");
+    printf("  push rax\n");
     return;
   }
 

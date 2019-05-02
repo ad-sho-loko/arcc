@@ -17,6 +17,13 @@ Node *new_node_num(int val){
   return n;
 }
 
+Node *new_node_ident(char name){
+  Node *n = malloc(sizeof(Node));
+  n->ty = TK_IDENT;
+  n->name = name;
+  return n;
+}
+
 int consume(int ty){
   if(((Token*)tokens->data[pos])->ty != ty)
     return 0;
@@ -33,9 +40,14 @@ Node* term(){
     }
     return n;
   }
-  
-  if(((Token*)tokens->data[pos])->ty == TK_NUM){
-    return new_node_num(((Token*)tokens->data[pos++])->val);
+
+  Token *tkn = ((Token*)(tokens->data[pos++]));
+  if(tkn->ty == TK_NUM){
+    return new_node_num(tkn->val);
+  }
+
+  if(tkn->ty == TK_IDENT){
+    return new_node_ident(tkn->val);
   }
   
   error("数値でも開きカッコでもないトークンです: %s", ((Token*)(tokens->data[pos]))->input);

@@ -9,6 +9,16 @@ static Token *new_token(int ty, char* input, int val){
   return t;
 }
 
+static Token *new_token_ident(char ident, char* input){
+  Token *t = malloc(sizeof(Token));
+  t->ty = TK_IDENT;
+  t->input = input;
+  t->val = 0;
+  t->name = ident;
+  return t;
+}
+
+
 Vector *tokenize(char *p){
   Vector* tokens = new_vector();
   int i = 0;
@@ -48,7 +58,7 @@ Vector *tokenize(char *p){
       continue;      
     }
     
-    if(*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' || *p == ')' || *p == '<' || *p == '>' || *p == ';'){
+    if(*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' || *p == ')' || *p == '<' || *p == '>' || *p == ';' || *p == '='){
       push_back(tokens, new_token(*p, p, 0));
       i++;
       p++;
@@ -62,7 +72,7 @@ Vector *tokenize(char *p){
     }
 
     if(*p >= 'a' && *p <= 'z'){
-      push_back(tokens, new_token(TK_IDENT, p, 0));
+      push_back(tokens, new_token_ident(*p, p));
       i++;
       p++;
       continue;
