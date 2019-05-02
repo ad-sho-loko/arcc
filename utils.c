@@ -41,7 +41,9 @@ void debug_vector_token(Vector *v){
 }
 
 char* stringfy_token(int tkn_kind){
-  if(tkn_kind <= 255) return "CHAR";
+  if(tkn_kind <= 255) {
+    return "CHAR"; 
+  }
 
   switch(tkn_kind){
   case 256: return "TK_NUM";

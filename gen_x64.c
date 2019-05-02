@@ -5,9 +5,9 @@ void gen_lval(Node *node){
   if(node->ty != TK_IDENT)
     error("左辺は変数でなければいけません");
   int offset = 'z' - (node->name + 1) * 8;
-  printf("  mov rax, rbp\n");
+  out("mov rax, rbp");
   printf("  sub rax, %d\n", offset);
-  printf("  push rax\n");
+  out("push rax");
 }
 
 void gen(Node *node){
@@ -18,9 +18,9 @@ void gen(Node *node){
 
   if(node->ty == TK_IDENT){
     gen_lval(node);
-    printf("  pop rax\n");
-    printf("  mov rax, [rax]\n");
-    printf("  push rax\n");
+    out("pop rax");
+    out("mov rax, [rax]");
+    out("push rax");
     return;
   }
 
@@ -36,43 +36,43 @@ void gen(Node *node){
   gen(node->lhs);
   gen(node->rhs);
 
-  printf("  pop rdi\n");
-  printf("  pop rax\n");
+  out("pop rdi");
+  out("pop rax");
   
   switch(node->ty){
   case '+':
-    printf("  add rax, rdi\n");
+    out("add rax, rdi");
     break;
   case '-':
-    printf("  sub rax, rdi\n");
+    out("sub rax, rdi");
     break;
   case '*':
-    printf("  mul rdi\n");
+    out("mul rdi");
     break;
   case '/':
-    printf("  mov rdx, 0\n");
-    printf("  div rdi\n");
+    out("mov rdx, 0");
+    out("div rdi");
     break;
   case TK_EQL:
-    printf("  cmp rax, rdi\n");
-    printf("  sete al\n");
-    printf("  movzb rax, al\n");
+    out("cmp rax, rdi");
+    out("sete al");
+    out("movzb rax, al");
     break;
   case TK_NEQ:
-    printf("  cmp rax, rdi\n");
-    printf("  setne al\n");
-    printf("  movzb rax, al\n");    
+    out("cmp rax, rdi");
+    out("setne al");
+    out("movzb rax, al");    
     break;
   case '<':
-    printf("  cmp rax, rdi\n");
-    printf("  setl al\n");
-    printf("  movzb rax, al\n");    
+    out("cmp rax, rdi");
+    out("setl al");
+    out("movzb rax, al");    
     break;
   case TK_LE:
-    printf("  cmp rax, rdi\n");
-    printf("  setle al\n");
-    printf("  movzb rax, al\n");        
+    out("cmp rax, rdi");
+    out("setle al");
+    out("movzb rax, al");
     break;
   }
-  printf("  push rax\n");
+  out("push rax");
 }
