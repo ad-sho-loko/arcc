@@ -36,6 +36,16 @@ typedef struct {
 Vector *new_vector();
 void push_back(Vector *v, void* elm);
 
+// A simple map
+typedef struct{
+  Vector* keys;
+  Vector* values;
+} Map;
+
+Map *new_map();
+void* map_get(Map* m, char* key);
+void map_put(Map* m, char* key, void* value);
+  
 void error(char* fmt, ...);
 void out(char* code);
 void debug_vector_token(Vector *v);
@@ -51,5 +61,6 @@ Node *stmt();
 void program();
 Vector *tokenize(char *p);
 void gen(Node *n);
+
 extern Node *codes[100];
 extern Vector *tokens;

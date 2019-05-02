@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <string.h>
 #include "arcc.h"
 
 // common 
@@ -38,6 +39,27 @@ void debug_vector_token(Vector *v){
     Token* t = (Token*)v->data[i];
     fprintf(stderr, "token[%d]{ ty:%s, input:%s, val:%d, name:%c }\n", i,  stringfy_token(t->ty), t->input, t->val, t->name);
   }
+}
+
+Map* new_map(){
+  Map* m = malloc(sizeof(Map));
+  m->keys = new_vector();
+  m->values = new_vector();
+  return m;
+}
+
+void map_put(Map *m, char *key, void *value) {
+  push_back(m->keys, key);
+  push_back(m->values, value);
+}
+
+void* map_get(Map *m, char *key){
+  for(int i=0; i<m->keys->len; i++){
+    if (strcmp(m->keys->data[i], key) == 0){
+      return m->values->data[i];
+    }
+  }
+  return NULL;
 }
 
 char* stringfy_token(int tkn_kind){
