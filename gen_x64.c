@@ -24,6 +24,15 @@ void gen(Node *node){
     return;
   }
 
+  if(node->ty == TK_RETURN){
+    gen(node->lhs);
+    out("pop rax");
+    out("mov rsp, rbp");
+    out("pop rbp");
+    out("ret");
+    return;
+  }
+  
   gen(node->lhs);
   gen(node->rhs);
 

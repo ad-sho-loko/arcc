@@ -127,9 +127,17 @@ Node *assign(){
 }
 
 Node *stmt(){
-  Node *n = assign();
+  Node* n;
+  if(consume(TK_RETURN)){
+    n = malloc(sizeof(Node));
+    n->ty = TK_RETURN;
+    n->lhs = assign();
+  }else{
+    n = assign();
+  }
+  
   if(!consume(';')){
-    error(";ではないトークンです %s.", ((Token*)tokens->data[pos])->input);
+    error(";ではないトークンです %s", ((Token*)tokens->data[pos])->input);
     exit(1);
   }
   return n;

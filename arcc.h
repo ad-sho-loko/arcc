@@ -7,6 +7,7 @@ enum{
   TK_LE,
   TK_GE,
   TK_IDENT,
+  TK_RETURN,
   TK_EOF
 };
 
@@ -36,6 +37,10 @@ Vector *new_vector();
 void push_back(Vector *v, void* elm);
 
 void error(char* fmt, ...);
+void out(char* code);
+void debug_vector_token(Vector *v);
+char* stringfy_token(int tkn_kind);
+
 Node *add();
 Node *mul();
 Node *term();
@@ -46,6 +51,5 @@ Node *stmt();
 void program();
 Vector *tokenize(char *p);
 void gen(Node *n);
-  
 extern Node *codes[100];
 extern Vector *tokens;

@@ -13,20 +13,21 @@ int main(int argc, char **argv) {
   printf(".intel_syntax noprefix\n");
   printf(".global main\n");
   printf("main:\n");
-  printf("  push rbp\n");
-  printf("  mov rbp, rsp\n");
-  printf("  sub rsp, 208\n");
 
-  tokens = tokenize(argv[1]);  
+  out("push rbp");
+  out("mov rbp, rsp");
+  out("sub rsp, 208");
+
+  tokens = tokenize(argv[1]);
   program();
 
   for(int i=0; codes[i] != NULL; i++){
     gen(codes[i]);
-    printf("  pop rax\n");
+    out("pop rax");
   }
 
-  printf("  mov rsp, rbp\n");
-  printf("  pop rbp\n");
-  printf("  ret\n");
+  out("mov rsp, rbp");
+  out("pop rbp");
+  out("ret");
   return 0;  
 }

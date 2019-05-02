@@ -12,6 +12,9 @@ void error(char* fmt, ...){
   exit(1);
 }
 
+void out(char* code){
+  printf("  %s\n", code);
+}
 
 // vector
 Vector *new_vector(){
@@ -28,5 +31,28 @@ void push_back(Vector *v, void* elm){
     v->data = realloc(v->data ,sizeof(void*) * v->cap);
   }
   v->data[v->len++] = elm;
+}
+
+void debug_vector_token(Vector *v){
+  for(int i=0; i<v->len; i++){
+    Token* t = (Token*)v->data[i];
+    fprintf(stderr, "token[%d]{ ty:%s, input:%s, val:%d, name:%c }\n", i,  stringfy_token(t->ty), t->input, t->val, t->name);
+  }
+}
+
+char* stringfy_token(int tkn_kind){
+  if(tkn_kind <= 255) return "CHAR";
+
+  switch(tkn_kind){
+  case 256: return "TK_NUM";
+  case 257: return "TK_EQL";
+  case 258: return "TK_NEQ";
+  case 259: return "TK_LE";
+  case 260: return "TK_GE";
+  case 261: return "TK_IDENT";
+  case 262: return "TK_RETERN";
+  case 263: return "TK_EOF";
+  default: return "Unknown";
+  }
 }
 
