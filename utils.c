@@ -18,11 +18,9 @@ void out(char* code){
   printf("  %s\n", code);
 }
 
-/*
 void printd(char *s){
   fprintf(stderr, s);
 }
-*/
 
 // vector
 Vector *new_vector(){
@@ -87,7 +85,9 @@ int map_len(Map *m){
 
 char* stringfy_token(int tkn_kind){
   if(tkn_kind <= 255) {
-    return "CHAR"; 
+    char *s = malloc(sizeof(char)*2);
+    s[0] = (char)tkn_kind; s[1] = '\0';
+    return s;
   }
 
   switch(tkn_kind){
@@ -99,6 +99,9 @@ char* stringfy_token(int tkn_kind){
   case 261: return "TK_IDENT";
   case 262: return "TK_RETERN";
   case 263: return "TK_EOF";
+  case 264: return "TK_IF";
+  case 265: return "TK_FOR";
+  case 266: return "TK_WHILE";
   default: return "Unknown";
   }
 }

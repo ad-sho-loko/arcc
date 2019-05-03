@@ -1,3 +1,4 @@
+
 #include <ctype.h>
 #include <string.h>
 #include <stdbool.h>
@@ -74,7 +75,7 @@ Vector *tokenize(char *p){
       continue;      
     }
     
-    if(*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' || *p == ')' || *p == '<' || *p == '>' || *p == ';' || *p == '='){
+    if(*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' || *p == ')' || *p == '<' || *p == '>' || *p == ';' || *p == '=' || *p == '{' || *p == '}'){
       push_back(tokens, new_token(*p, p, 0));
       p++;
       continue;
@@ -91,6 +92,12 @@ Vector *tokenize(char *p){
       continue;
     }
 
+    if(strncmp(p, "if", 2) == 0 && !is_alnum(p[2])){
+      push_back(tokens, new_token(TK_IF, p, 0));
+      p+=2;
+      continue;
+    }
+
     if(is_valid_leading(*p)){
       int len = 1;
       while(is_alnum(*(p+len))){
@@ -102,7 +109,7 @@ Vector *tokenize(char *p){
       continue;
     }
     
-    error("cannot tokenize %c", p);
+    error("cannot tokenize %s", p);
     exit(1);
   }
 

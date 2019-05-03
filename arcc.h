@@ -8,7 +8,10 @@ enum{
   TK_GE,
   TK_IDENT,
   TK_RETURN,
-  TK_EOF
+  TK_EOF,
+  TK_IF,
+  TK_FOR,
+  TK_WHILE
 };
 
 typedef struct{
