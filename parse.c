@@ -127,6 +127,34 @@ Node *assign(){
   return n;
 }
 
+Node *if_stmt(){
+  if(!consume('(')){
+    error("ifのあとは必ず(が必須です。 %c", tokens->data[pos]);
+    exit(1);
+  }
+
+  Node* n = malloc(sizeof(Node));
+  n->ty = TK_IF;
+  n->cond = assign();
+  if(!consume(')')){
+    error("if(xxxxxのあとは必ず)が必須です。 %c", tokens->data[pos]);    
+    exit(1);
+  }
+
+  // todo!
+  if(!consume('{')){
+    error("if(xxxx)のあとは必ず{が必須です。 %c", tokens->data[pos]);
+    exit(1);
+  }
+
+  n->then = stmt();
+  if(!consume('}')){
+    error("if(xxx){xxxxのあとは必ず}が必須です。 %c", tokens->data[pos]);
+    exit(1);
+  }
+  return n;
+}
+
 Node *stmt(){
   Node* n;
   if(consume(TK_RETURN)){
@@ -145,10 +173,11 @@ Node *stmt(){
 }
 
 void program(){
-  int i = 0;
   while(((Token*)tokens->data[pos])->ty != TK_EOF){
-    codes[i++] = stmt();
+    if(consume(TK_IF)){
+      push_back(nodes, if_stmt());
+    }else{
+      push_back(nodes, stmt());
+    }
   }
-  codes[i] = NULL;
 }
-

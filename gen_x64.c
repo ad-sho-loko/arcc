@@ -12,6 +12,16 @@ void gen_lval(Node *node){
 }
 
 void gen(Node *node){
+  if(node->ty == TK_IF){
+    gen(node->cond);
+    out("pop rax");
+    out("cmp rax, 0");
+    out("jne .Lelse0");
+    gen(node->then);
+    out(".Lelse0:");
+    return;
+  }
+  
   if(node->ty == TK_NUM){
     printf("  push %d\n", node->val);
     return;

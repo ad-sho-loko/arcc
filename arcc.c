@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include "arcc.h"
-
-Node *codes[100];
+Vector *nodes;
 Vector *tokens;
 Map *map;
 
@@ -11,6 +10,7 @@ int main(int argc, char **argv) {
     return 1;
   }
 
+  nodes = new_vector();
   map = new_map();
   printf(".intel_syntax noprefix\n");
   printf(".global main\n");
@@ -21,12 +21,13 @@ int main(int argc, char **argv) {
   out("sub rsp, 208");
     
   tokens = tokenize(argv[1]);
-  debug_vector_token(tokens);
+  // debug_vector_token(tokens);
   program();
-
+  // debug_vector_nodes(nodes);
   printf("  sub rsp, %d\n", (map_len(map) + 1) * 4);
-  for(int i=0; codes[i] != NULL; i++){
-    gen(codes[i]);
+  
+  for(int i=0; i<nodes->len; i++){
+    gen(nodes->data[i]);
     out("pop rax");
   }
 

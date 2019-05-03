@@ -24,7 +24,10 @@ typedef struct{
 typedef struct Node{
   int ty;
   struct Node *lhs;
-  struct Node *rhs;  
+  struct Node *rhs;
+  struct Node *cond;
+  struct Node *then;
+  struct Node *els;
   int val;
   char* name;
 } Node;
@@ -54,6 +57,7 @@ void error(char* fmt, ...);
 void out(char* code);
 void printd(char *s);
 void debug_vector_token(Vector *v);
+void debug_vector_nodes(Vector *v);
 char* stringfy_token(int tkn_kind);
 
 Node *add();
@@ -67,6 +71,6 @@ void program();
 Vector *tokenize(char *p);
 void gen(Node *n);
 
-extern Node *codes[100];
+extern Vector *nodes;
 extern Vector *tokens;
 extern Map *map;

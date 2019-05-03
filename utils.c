@@ -50,6 +50,21 @@ void debug_vector_token(Vector *v){
   }
 }
 
+void debug_vector_nodes(Vector *v){
+  for(int i=0; i<v->len; i++){
+    Node *n = (Node*)v->data[i];
+    char* lhs;
+    char* rhs;
+    char* cond;
+    char* then;
+    if(n->lhs == NULL){ lhs = "";} else { lhs = stringfy_token(n->lhs->ty);}
+    if(n->rhs == NULL){ rhs = "";} else { rhs = stringfy_token(n->rhs->ty);}
+    if(n->cond == NULL){ cond = "";} else { cond = stringfy_token(n->cond->ty);}
+    if(n->then == NULL){ then = "";} else { then = stringfy_token(n->then->ty);}
+    fprintf(stderr, "nodes[%d]{ty:%s, lhs:%s, rhs:%s cond:%s, then:%s}\n", i, stringfy_token(n->ty), lhs, rhs, cond, then);
+  }
+}
+
 Map* new_map(){
   Map* m = malloc(sizeof(Map));
   m->keys = new_vector();
