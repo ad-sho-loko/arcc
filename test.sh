@@ -42,4 +42,5 @@ try 1 '1 >= 0;'
 try 0 '0 >= 1;'
 try 0 'a = 1;'
 try 123 'return 123;'
+try 0 'abc = 1;'
 echo ok

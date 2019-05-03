@@ -3,6 +3,7 @@
 
 Node *codes[100];
 Vector *tokens;
+Map *map;
 
 int main(int argc, char **argv) {
   if (argc != 2) {
@@ -10,6 +11,7 @@ int main(int argc, char **argv) {
     return 1;
   }
 
+  map = new_map();
   printf(".intel_syntax noprefix\n");
   printf(".global main\n");
   printf("main:\n");
@@ -17,10 +19,12 @@ int main(int argc, char **argv) {
   out("push rbp");
   out("mov rbp, rsp");
   out("sub rsp, 208");
-
+    
   tokens = tokenize(argv[1]);
+  debug_vector_token(tokens);
   program();
 
+  printf("  sub rsp, %d\n", (map_len(map) + 1) * 4);
   for(int i=0; codes[i] != NULL; i++){
     gen(codes[i]);
     out("pop rax");

@@ -4,7 +4,8 @@
 void gen_lval(Node *node){
   if(node->ty != TK_IDENT)
     error("左辺は変数でなければいけません");
-  int offset = 'z' - (node->name + 1) * 8;
+
+  int offset = map_geti(map, node->name);
   out("mov rax, rbp");
   printf("  sub rax, %d\n", offset);
   out("push rax");

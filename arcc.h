@@ -14,7 +14,7 @@ enum{
 typedef struct{
   int ty;
   int val;
-  char name;
+  char *name;
   char *input;
 } Token;
 
@@ -23,7 +23,7 @@ typedef struct Node{
   struct Node *lhs;
   struct Node *rhs;  
   int val;
-  char name;
+  char* name;
 } Node;
 
 // A variable-length array.
@@ -43,11 +43,13 @@ typedef struct{
 } Map;
 
 Map *new_map();
-void* map_get(Map* m, char* key);
-void map_put(Map* m, char* key, void* value);
-  
+int map_geti(Map* m, char *key);
+void map_puti(Map* m, char* key, int value);
+int map_len(Map* m);
+
 void error(char* fmt, ...);
 void out(char* code);
+void printd(char *s);
 void debug_vector_token(Vector *v);
 char* stringfy_token(int tkn_kind);
 
@@ -64,3 +66,4 @@ void gen(Node *n);
 
 extern Node *codes[100];
 extern Vector *tokens;
+extern Map *map;

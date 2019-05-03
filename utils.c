@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <stdint.h>
 #include <string.h>
 #include "arcc.h"
 
@@ -16,6 +17,12 @@ void error(char* fmt, ...){
 void out(char* code){
   printf("  %s\n", code);
 }
+
+/*
+void printd(char *s){
+  fprintf(stderr, s);
+}
+*/
 
 // vector
 Vector *new_vector(){
@@ -34,10 +41,14 @@ void push_back(Vector *v, void* elm){
   v->data[v->len++] = elm;
 }
 
+void push_backi(Vector *v, int elm){
+  push_back(v, (void*)(intptr_t)elm);
+}
+
 void debug_vector_token(Vector *v){
   for(int i=0; i<v->len; i++){
     Token* t = (Token*)v->data[i];
-    fprintf(stderr, "token[%d]{ ty:%s, input:%s, val:%d, name:%c }\n", i,  stringfy_token(t->ty), t->input, t->val, t->name);
+    fprintf(stderr, "token[%d]{ ty:%s, input:%s, val:%d, name:%s }\n", i,  stringfy_token(t->ty), t->input, t->val, t->name);
   }
 }
 
@@ -60,6 +71,18 @@ void* map_get(Map *m, char *key){
     }
   }
   return NULL;
+}
+
+void map_puti(Map *m, char *key, int value){
+  map_put(m, key, (void*)(intptr_t)value);
+}
+
+int map_geti(Map *m, char *key){
+  return (intptr_t)map_get(m, key);
+}
+
+int map_len(Map *m){
+  return m->keys->len;
 }
 
 char* stringfy_token(int tkn_kind){
