@@ -45,4 +45,5 @@ try 123 'return 123;'
 try 0 'abc = 1;'
 try 0 'ab = 0; x = 1;'
 try 2 'a = 1; if(a == 1){ return 2; }'
+try 2 'a = 1; if(a == 1) return 2;'
 echo ok

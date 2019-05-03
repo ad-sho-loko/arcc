@@ -141,17 +141,16 @@ Node *if_stmt(){
     exit(1);
   }
 
-  // todo!
-  if(!consume('{')){
-    error("if(xxxx)のあとは必ず{が必須です。 %c", tokens->data[pos]);
-    exit(1);
+  if(consume('{')){
+    n->then = stmt();   // statmentではない！todo!
+    if(!consume('}')){
+      error("if(xxx){xxxxのあとは必ず}が必須です。 %c", tokens->data[pos]);
+      exit(1);
+    }
+  }else{
+    n->then = stmt();
   }
 
-  n->then = stmt();
-  if(!consume('}')){
-    error("if(xxx){xxxxのあとは必ず}が必須です。 %c", tokens->data[pos]);
-    exit(1);
-  }
   return n;
 }
 
