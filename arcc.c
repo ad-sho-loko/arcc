@@ -18,7 +18,6 @@ int main(int argc, char **argv) {
 
   out("push rbp");
   out("mov rbp, rsp");
-  out("sub rsp, 208");
     
   tokens = tokenize(argv[1]);
   // debug_vector_token(tokens);
