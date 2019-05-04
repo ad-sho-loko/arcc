@@ -3,6 +3,7 @@
 try(){
     expected="$1"
     input="$2"
+    echo "\033[0;31m[test target : $input]\033[0;39m"
 
     ## build
     ./arcc "$input" > tmp.s
@@ -46,4 +47,5 @@ try 0 'abc = 1;'
 try 0 'ab = 0; x = 1;'
 try 2 'a = 1; if(a == 1){ return 2; }'
 try 2 'a = 1; if(a == 1) return 2;'
+try 3 'if(1 == 1){ a = 3; return a; }'
 echo ok

@@ -138,21 +138,15 @@ Node *assign(){
 
 Node *if_stmt(){
   expect('(');
-  Node* n = malloc(sizeof(Node));
-  n->ty = TK_IF;
+  Node* n = new_node(TK_IF, NULL, NULL);
   n->cond = assign();
   expect(')');
-
   if(consume('{')){
     n->then = stmt();   // statmentではない！todo!
-    if(!consume('}')){
-      error("if(xxx){xxxxのあとは必ず}が必須です。 %c", tokens->data[pos]);
-      exit(1);
-    }
+    expect('}');
   }else{
     n->then = stmt();
   }
-
   return n;
 }
 
@@ -160,20 +154,18 @@ Node *stmt(){
   Node* n;
   if(consume(TK_RETURN)){
     n = new_node(TK_RETURN, assign(), NULL);
+    expect(';');
+  }else if(consume(TK_IF)){
+    n = if_stmt();
   }else{
     n = assign();
+    expect(';');
   }
-
-  expect(';');
   return n;
 }
 
 void program(){
   while(((Token*)tokens->data[pos])->ty != TK_EOF){
-    if(consume(TK_IF)){
-      push_back(nodes, if_stmt());
-    }else{
-      push_back(nodes, stmt());
-    }
+    push_back(nodes, stmt());
   }
 }

@@ -20,9 +20,9 @@ int main(int argc, char **argv) {
   out("mov rbp, rsp");
     
   tokens = tokenize(argv[1]);
-  // debug_vector_token(tokens);
+  debug_vector_token(tokens);
   program();
-  // debug_vector_nodes(nodes);
+  debug_vector_nodes(nodes);
   printf("  sub rsp, %d\n", (map_len(map) + 1) * 4);
   
   for(int i=0; i<nodes->len; i++){
