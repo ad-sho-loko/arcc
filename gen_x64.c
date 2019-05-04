@@ -16,7 +16,7 @@ void gen(Node *node){
     gen(node->cond);
     out("pop rax");
     out("cmp rax, 0");
-    out("jne .Lelse0");
+    out("je .Lelse0");
     gen(node->then);
     out(".Lelse0:");
     return;
@@ -34,6 +34,16 @@ void gen(Node *node){
     return;
   }
 
+  if(node->ty == '='){
+    gen_lval(node->lhs);
+    gen(node->rhs);
+    out("pop rdi");
+    out("pop rax");
+    out("mov [rax], rdi");
+    out("push rdi");
+    return;
+  }
+  
   if(node->ty == ND_IDENT){
     gen_lval(node);
     out("pop rax");
@@ -41,7 +51,7 @@ void gen(Node *node){
     out("push rax");
     return;
   }
-
+  
   if(node->ty == ND_RETURN){
     gen(node->lhs);
     out("pop rax");
