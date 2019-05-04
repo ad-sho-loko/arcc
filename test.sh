@@ -51,4 +51,5 @@ try 2 'a = 1; if(a == 1) return 2;'
 try 10 'a = 1; if(a == 1){ 1 + 1; return 10; } return 8;'
 try 8 'if(1 == 1) return 8;'
 try 5 'if(1 == 1){ a = 3; return 5; }'
+try 9 'if(1 == 0){return 1;} else{ return 9;}'
 echo ok

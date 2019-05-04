@@ -15,10 +15,19 @@ void gen(Node *node){
   if(node->ty == ND_IF){
     gen(node->cond);
     out("pop rax");
-    out("cmp rax, 0");
-    out("je .Lelse0");
+    out("cmp rax, 1");
+    if(node->els != NULL){
+      out("jne .Lelse001");
+    }else{
+      out("jne .Lend001");
+    }
     gen(node->then);
-    out(".Lelse0:");
+    if(node->els != NULL){
+      out(".Lelse001:");
+      gen(node->els);
+      out("jmp .Lend001");
+    }
+    out(".Lend001:");
     return;
   }
 

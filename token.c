@@ -98,6 +98,12 @@ Vector *tokenize(char *p){
       continue;
     }
 
+    if(strncmp(p, "else", 4) == 0 && !is_alnum(p[4])){
+      push_back(tokens, new_token(TK_ELSE, p, 0));
+      p+=4;
+      continue;
+    }
+    
     if(is_valid_leading(*p)){
       int len = 1;
       while(is_alnum(*(p+len))){

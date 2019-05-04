@@ -12,6 +12,7 @@ enum{
   TK_IF,
   TK_FOR,
   TK_WHILE,
+  TK_ELSE
 };
 
 enum{
@@ -26,7 +27,8 @@ enum{
   ND_IF,
   ND_FOR,
   ND_WHILE,
-  ND_BLOCK  
+  ND_ELSE,
+  ND_BLOCK,
 };
 
 // A variable-length array.
@@ -75,6 +77,7 @@ void printd(char *s);
 void debug_vector_token(Vector *v);
 void debug_vector_nodes(Vector *v);
 char* stringfy_token(int tkn_kind);
+char* stringfy_node(int node_kind);
 
 Node *add();
 Node *mul();

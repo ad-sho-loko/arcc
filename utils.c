@@ -57,16 +57,23 @@ void debug_vector_nodes(Vector *v){
     char* rhs;
     char* cond;
     char* then;
-    if(n->lhs == NULL){ lhs = "";} else { lhs = stringfy_token(n->lhs->ty);}
-    if(n->rhs == NULL){ rhs = "";} else { rhs = stringfy_token(n->rhs->ty);}
-    if(n->cond == NULL){ cond = "";} else { cond = stringfy_token(n->cond->ty);}
+    char* els;
+    if(n->lhs == NULL){ lhs = "";} else { lhs = stringfy_node(n->lhs->ty);}
+    if(n->rhs == NULL){ rhs = "";} else { rhs = stringfy_node(n->rhs->ty);}
+    if(n->cond == NULL){ cond = "";} else { cond = stringfy_node(n->cond->ty);}
     if(n->then == NULL){ then = "";} else {
-      then = stringfy_token(n->then->ty);
+      then = stringfy_node(n->then->ty);
       if(n->then->ty == ND_BLOCK) {
         debug_vector_nodes(n->then->items);
       }
     }
-    fprintf(stderr, "nodes[%d]{ty:%s, lhs:%s, rhs:%s cond:%s, then:%s}\n", i, stringfy_token(n->ty), lhs, rhs, cond, then);
+    if(n->els == NULL){ els = "";} else{
+      els = stringfy_node(n->els->ty);
+      if(n->els->ty == ND_BLOCK){
+        debug_vector_nodes(n->els->items);
+      }
+    }
+    fprintf(stderr, "nodes[%d]{ ty:%s, lhs:%s, rhs:%s cond:%s, then:%s, els=%s}\n", i, stringfy_node(n->ty), lhs, rhs, cond, then, els);
   }
 }
 
@@ -122,6 +129,32 @@ char* stringfy_token(int tkn_kind){
   case 264: return "TK_IF";
   case 265: return "TK_FOR";
   case 266: return "TK_WHILE";
+  case 267: return "TK_ELSE";
+  default: return "Unknown";
+  }
+}
+
+char* stringfy_node(int node_kind){
+  if(node_kind <= 255) {
+    char *s = malloc(sizeof(char)*2);
+    s[0] = (char)node_kind; s[1] = '\0';
+    return s;
+  }
+
+  switch(node_kind){
+  case 256: return "ND_NUM";
+  case 257: return "ND_EQL";
+  case 258: return "ND_NEQ";
+  case 259: return "ND_LE";
+  case 260: return "ND_GE";
+  case 261: return "ND_IDENT";
+  case 262: return "ND_RETERN";
+  case 263: return "ND_EOF";
+  case 264: return "ND_IF";
+  case 265: return "ND_FOR";
+  case 266: return "ND_WHILE";
+  case 267: return "ND_ELSE";
+  case 268: return "ND_BLOCK";
   default: return "Unknown";
   }
 }

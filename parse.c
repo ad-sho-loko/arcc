@@ -157,6 +157,10 @@ Node *if_stmt(){
   n->cond = assign();
   expect(')');
   n->then = block();
+  // todo : else-if
+  if(consume(TK_ELSE)){
+    n->els = block();
+  }
   return n;
 }
 
