@@ -65,11 +65,13 @@ Node* term(){
 }
 
 Node* unary(){
-  if(consume(TK_INC )){
-    // ++a -> a = a + 1; a;
+  if(consume(TK_INC)){
+    // ++a -> a += 1; a;
   }else if(consume('+')){
+    // +2 -> 2
     return term();
   }else if(consume('-')){
+    // -2 -> 0-2
     return new_node('-', new_node_num(0), term());
   }
   return term();
@@ -151,6 +153,7 @@ Node *assign(){
       n = new_node('=', n, assign());
     }else if(consume(TK_PLUS_EQ)){
       // a+=2; -> a = a + 2;
+      // [OK] a+=2; a+=a; [NG] 1+=1
       n = new_node('=', n, new_node('+', n, assign()));
     }else if(consume(TK_MINUS_EQ)){
       n = new_node('=', n, new_node('-', n, assign()));

@@ -41,10 +41,6 @@ enum{
   ND_OR,
   ND_INC,
   ND_DEC,
-  ND_PLUS_EQ,
-  ND_MINUS_EQ,
-  ND_MUL_EQ,
-  ND_DIV_EQ
 };
 
 // A variable-length array.
