@@ -2,7 +2,7 @@
 #include "arcc.h"
 
 void gen_lval(Node *node){
-  if(node->ty != TK_IDENT)
+  if(node->ty != ND_IDENT)
     error("左辺は変数でなければいけません");
 
   int offset = map_geti(map, node->name);
@@ -12,7 +12,7 @@ void gen_lval(Node *node){
 }
 
 void gen(Node *node){
-  if(node->ty == TK_IF){
+  if(node->ty == ND_IF){
     gen(node->cond);
     out("pop rax");
     out("cmp rax, 0");
@@ -22,19 +22,19 @@ void gen(Node *node){
     return;
   }
 
-  if(node->ty == TK_BLOCK){
+  if(node->ty == ND_BLOCK){
     for(int i=0; i<node->items->len; i++){
       gen(node->items->data[i]);
     }
     return;
   }
   
-  if(node->ty == TK_NUM){
+  if(node->ty == ND_NUM){
     printf("  push %d\n", node->val);
     return;
   }
 
-  if(node->ty == TK_IDENT){
+  if(node->ty == ND_IDENT){
     gen_lval(node);
     out("pop rax");
     out("mov rax, [rax]");
@@ -42,7 +42,7 @@ void gen(Node *node){
     return;
   }
 
-  if(node->ty == TK_RETURN){
+  if(node->ty == ND_RETURN){
     gen(node->lhs);
     out("pop rax");
     out("mov rsp, rbp");
@@ -71,12 +71,12 @@ void gen(Node *node){
     out("mov rdx, 0");
     out("div rdi");
     break;
-  case TK_EQL:
+  case ND_EQL:
     out("cmp rax, rdi");
     out("sete al");
     out("movzb rax, al");
     break;
-  case TK_NEQ:
+  case ND_NEQ:
     out("cmp rax, rdi");
     out("setne al");
     out("movzb rax, al");    
@@ -86,7 +86,7 @@ void gen(Node *node){
     out("setl al");
     out("movzb rax, al");    
     break;
-  case TK_LE:
+  case ND_LE:
     out("cmp rax, rdi");
     out("setle al");
     out("movzb rax, al");

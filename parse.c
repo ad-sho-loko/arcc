@@ -12,14 +12,14 @@ Node *new_node(int ty, Node *lhs, Node *rhs){
 
 Node *new_node_num(int val){
   Node* n = malloc(sizeof(Node));
-  n->ty = TK_NUM;
+  n->ty = ND_NUM;
   n->val = val;
   return n;
 }
 
 Node *new_node_ident(char* name){
   Node *n = malloc(sizeof(Node));
-  n->ty = TK_IDENT;
+  n->ty = ND_IDENT;
   n->name = name;
   map_puti(map, name, (map_len(map) + 1) * 4);
   return n;
@@ -105,11 +105,11 @@ Node* relational(){
     if(consume('<')){
       n = new_node('<', n, add());
     }else if(consume(TK_LE)){
-      n = new_node(TK_LE, n, add());
+      n = new_node(ND_LE, n, add());
     }else if(consume('>')){
-      n = new_node(TK_LE, add(), n);
+      n = new_node(ND_LE, add(), n);
     }else if(consume(TK_GE)){
-      n = new_node(TK_LE, add(), n);
+      n = new_node(ND_LE, add(), n);
     }else{
       return n;      
     }
@@ -120,9 +120,9 @@ Node *equality(){
   Node *n = relational();
   for(;;){
     if(consume(TK_EQL)){
-      n = new_node(TK_EQL, n, relational());
+      n = new_node(ND_EQL, n, relational());
     }else if(consume(TK_NEQ)){
-      n = new_node(TK_NEQ, n, relational());
+      n = new_node(ND_NEQ, n, relational());
     }else{
       return n;
     }
@@ -143,7 +143,7 @@ Node *block(){
       push_back(v, stmt());
     }
     Node *n = malloc(sizeof(Node));
-    n->ty = TK_BLOCK;
+    n->ty = ND_BLOCK;
     n->items = v;
     return n;
   }else{
@@ -153,7 +153,7 @@ Node *block(){
 
 Node *if_stmt(){
   expect('(');
-  Node* n = new_node(TK_IF, NULL, NULL);
+  Node* n = new_node(ND_IF, NULL, NULL);
   n->cond = assign();
   expect(')');
   n->then = block();
@@ -163,7 +163,7 @@ Node *if_stmt(){
 Node *stmt(){
   Node* n;
   if(consume(TK_RETURN)){
-    n = new_node(TK_RETURN, assign(), NULL);
+    n = new_node(ND_RETURN, assign(), NULL);
     expect(';');
   }else if(consume(TK_IF)){
     n = if_stmt();

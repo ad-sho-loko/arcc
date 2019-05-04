@@ -12,7 +12,21 @@ enum{
   TK_IF,
   TK_FOR,
   TK_WHILE,
-  TK_BLOCK
+};
+
+enum{
+  ND_NUM = 256,
+  ND_EQL,
+  ND_NEQ,
+  ND_LE,
+  ND_GE,
+  ND_IDENT,
+  ND_RETURN,
+  ND_EOF,
+  ND_IF,
+  ND_FOR,
+  ND_WHILE,
+  ND_BLOCK  
 };
 
 // A variable-length array.

@@ -62,7 +62,7 @@ void debug_vector_nodes(Vector *v){
     if(n->cond == NULL){ cond = "";} else { cond = stringfy_token(n->cond->ty);}
     if(n->then == NULL){ then = "";} else {
       then = stringfy_token(n->then->ty);
-      if(n->then->ty == TK_BLOCK) {
+      if(n->then->ty == ND_BLOCK) {
         debug_vector_nodes(n->then->items);
       }
     }
