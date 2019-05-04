@@ -21,6 +21,13 @@ void gen(Node *node){
     out(".Lelse0:");
     return;
   }
+
+  if(node->ty == TK_BLOCK){
+    for(int i=0; i<node->items->len; i++){
+      gen(node->items->data[i]);
+    }
+    return;
+  }
   
   if(node->ty == TK_NUM){
     printf("  push %d\n", node->val);

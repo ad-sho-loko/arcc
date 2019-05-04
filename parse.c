@@ -136,17 +136,27 @@ Node *assign(){
   return n;
 }
 
+Node *block(){
+  Vector *v = new_vector();
+  if(consume('{')){
+    while(!consume('}')){
+      push_back(v, stmt());
+    }
+    Node *n = malloc(sizeof(Node));
+    n->ty = TK_BLOCK;
+    n->items = v;
+    return n;
+  }else{
+   return stmt();
+  }
+}
+
 Node *if_stmt(){
   expect('(');
   Node* n = new_node(TK_IF, NULL, NULL);
   n->cond = assign();
   expect(')');
-  if(consume('{')){
-    n->then = stmt();   // statmentではない！todo!
-    expect('}');
-  }else{
-    n->then = stmt();
-  }
+  n->then = block();
   return n;
 }
 

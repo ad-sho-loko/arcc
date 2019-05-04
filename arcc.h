@@ -11,8 +11,16 @@ enum{
   TK_EOF,
   TK_IF,
   TK_FOR,
-  TK_WHILE
+  TK_WHILE,
+  TK_BLOCK
 };
+
+// A variable-length array.
+typedef struct {
+  void **data;
+  int cap;
+  int len;
+} Vector;
 
 typedef struct{
   int ty;
@@ -28,16 +36,10 @@ typedef struct Node{
   struct Node *cond;
   struct Node *then;
   struct Node *els;
+  Vector *items;
   int val;
   char* name;
 } Node;
-
-// A variable-length array.
-typedef struct {
-  void **data;
-  int cap;
-  int len;
-} Vector;
 
 Vector *new_vector();
 void push_back(Vector *v, void* elm);
