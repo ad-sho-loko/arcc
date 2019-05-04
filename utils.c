@@ -130,6 +130,8 @@ char* stringfy_token(int tkn_kind){
   case 265: return "TK_FOR";
   case 266: return "TK_WHILE";
   case 267: return "TK_ELSE";
+  case 268: return "TK_AND";
+  case 269: return "TK_OR";    
   default: return "Unknown";
   }
 }
@@ -155,6 +157,8 @@ char* stringfy_node(int node_kind){
   case 266: return "ND_WHILE";
   case 267: return "ND_ELSE";
   case 268: return "ND_BLOCK";
+  case 269: return "TK_AND";    
+  case 270: return "TK_OR";    
   default: return "Unknown";
   }
 }

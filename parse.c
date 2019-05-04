@@ -35,7 +35,7 @@ int consume(int ty){
 void expect(int ty){
   int actual = ((Token*)(tokens->data[pos]))->ty;
   if(actual != ty){
-    error("expected=%c, but accutal=%c", ty, actual);
+    error("expected=%c, but accutal=%c in parse.c", ty, actual);
     exit(1);
   }
   pos++;
@@ -129,8 +129,21 @@ Node *equality(){
   }
 }
 
-Node *assign(){
+Node *expr(){
   Node *n = equality();
+  for(;;){
+    if(consume(TK_AND)){
+      n = new_node(ND_AND, n, equality());
+    }else if(consume(TK_OR)){
+      n = new_node(ND_OR, n, equality());
+    }else{
+      return n;
+    }
+  }
+}
+
+Node *assign(){
+  Node *n = expr();
   while(consume('='))
     n = new_node('=', n, assign());
   return n;
@@ -154,7 +167,7 @@ Node *block(){
 Node *if_stmt(){
   expect('(');
   Node* n = new_node(ND_IF, NULL, NULL);
-  n->cond = assign();
+  n->cond = expr();
   expect(')');
   n->then = block();
   // todo : else-if

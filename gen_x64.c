@@ -26,8 +26,7 @@ void gen(Node *node){
     out("pop rax");
     out("cmp rax, 1");
 
-    int lcnt = next_label;
-    next_label++;
+    int lcnt = next_label++;
 
     if(node->els != NULL){
       printf("  jne %s\n", new_label("else", lcnt));
@@ -76,7 +75,7 @@ void gen(Node *node){
     out("push rax");
     return;
   }
-  
+
   if(node->ty == ND_RETURN){
     gen(node->lhs);
     out("pop rax");
@@ -125,6 +124,12 @@ void gen(Node *node){
     out("cmp rax, rdi");
     out("setle al");
     out("movzb rax, al");
+    break;
+  case ND_AND:
+    out("and rax, rdi");
+    break;
+  case ND_OR:
+    out("or rax, rdi");
     break;
   }
   out("push rax");

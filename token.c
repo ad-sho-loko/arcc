@@ -74,6 +74,18 @@ Vector *tokenize(char *p){
       p+=2;
       continue;      
     }
+
+    if(*p == '|' && *(p+1) == '|'){
+      push_back(tokens, new_token(TK_OR, "||", 0));
+      p+=2;
+      continue;
+    }
+
+    if(*p == '&' && *(p+1) == '&'){
+      push_back(tokens, new_token(TK_AND, "&&", 0));
+      p+=2;
+      continue;
+    }
     
     if(*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' || *p == ')' || *p == '<' || *p == '>' || *p == ';' || *p == '=' || *p == '{' || *p == '}'){
       push_back(tokens, new_token(*p, p, 0));
