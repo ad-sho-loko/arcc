@@ -32,6 +32,15 @@ int consume(int ty){
   return 1;
 }
 
+void expect(int ty){
+  int actual = ((Token*)(tokens->data[pos]))->ty;
+  if(actual != ty){
+    error("expected=%c, but accutal=%c", ty, actual);
+    exit(1);
+  }
+  pos++;
+}
+
 Node* term(){
   if(consume('(')){
     Node *n = assign();
@@ -128,18 +137,11 @@ Node *assign(){
 }
 
 Node *if_stmt(){
-  if(!consume('(')){
-    error("ifのあとは必ず(が必須です。 %c", tokens->data[pos]);
-    exit(1);
-  }
-
+  expect('(');
   Node* n = malloc(sizeof(Node));
   n->ty = TK_IF;
   n->cond = assign();
-  if(!consume(')')){
-    error("if(xxxxxのあとは必ず)が必須です。 %c", tokens->data[pos]);    
-    exit(1);
-  }
+  expect(')');
 
   if(consume('{')){
     n->then = stmt();   // statmentではない！todo!
@@ -157,17 +159,12 @@ Node *if_stmt(){
 Node *stmt(){
   Node* n;
   if(consume(TK_RETURN)){
-    n = malloc(sizeof(Node));
-    n->ty = TK_RETURN;
-    n->lhs = assign();
+    n = new_node(TK_RETURN, assign(), NULL);
   }else{
     n = assign();
   }
-  
-  if(!consume(';')){
-    error(";ではないトークンです %s", ((Token*)tokens->data[pos])->input);
-    exit(1);
-  }
+
+  expect(';');
   return n;
 }
 
