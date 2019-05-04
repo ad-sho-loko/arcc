@@ -65,6 +65,8 @@ typedef struct Node{
   struct Node *cond;
   struct Node *then;
   struct Node *els;
+  struct Node *init; // for(xxx; ; )
+  struct Node *last; // for(;; xxx)
   Vector *items;
   int val;
   char* name;

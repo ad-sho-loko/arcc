@@ -208,6 +208,20 @@ Node *while_stmt(){
   return n;
 }
 
+Node *for_stmt(){
+  expect('(');
+  Node *n = new_node(ND_FOR, NULL, NULL);
+  // todo : check correct priority.
+  n->init = assign();
+  expect(';');
+  n->cond = expr();
+  expect(';');
+  n->last = assign();
+  expect(')');
+  n->then = block();
+  return n;
+}
+
 Node *stmt(){
   Node* n;
   if(consume(TK_RETURN)){
@@ -217,6 +231,8 @@ Node *stmt(){
     n = if_stmt();
   }else if(consume(TK_WHILE)){
     n = while_stmt();
+  }else if(consume(TK_FOR)){
+    n = for_stmt();
   }else{
     n = assign();
     expect(';');

@@ -58,6 +58,21 @@ void gen(Node *node){
     return;
   }
 
+  if(node->ty == ND_FOR){
+    int lcnt = next_label++;
+    gen(node->init);
+    printf("%s:\n", new_label("begin", lcnt));
+    gen(node->cond);
+    out("pop rax");
+    out("cmp rax, 1");
+    printf("  jne %s\n", new_label("end", lcnt));
+    gen(node->then);
+    gen(node->last);
+    printf("  jmp %s\n", new_label("begin", lcnt));
+    printf("%s:\n", new_label("end", lcnt));
+    return; 
+  }
+  
   if(node->ty == ND_BLOCK){
     for(int i=0; i<node->items->len; i++){
       gen(node->items->data[i]);

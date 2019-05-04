@@ -165,7 +165,14 @@ Vector *tokenize(char *p){
       p+=5;
       continue;
     }    
-   
+
+    if(strncmp(p, "for", 3) == 0 && !is_alnum(p[3])){
+      push_back(tokens, new_token(TK_FOR, p, 0));
+      p+=3;
+      continue;
+    }    
+
+    
     if(is_valid_leading(*p)){
       int len = 1;
       while(is_alnum(*(p+len))){
