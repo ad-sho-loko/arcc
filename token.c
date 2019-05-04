@@ -86,6 +86,44 @@ Vector *tokenize(char *p){
       p+=2;
       continue;
     }
+
+    if(*p == '+' && *(p+1) == '+'){
+      push_back(tokens, new_token(TK_INC, "++", 0));
+      p+=2;
+      continue;
+    }
+
+    if(*p == '+' && *(p+1) == '+'){
+      push_back(tokens, new_token(TK_DEC, "++", 0));
+      p+=2;
+      continue;
+    }
+
+    if(*p == '+' && *(p+1) == '='){
+      push_back(tokens, new_token(TK_PLUS_EQ, "+=", 0));
+      p+=2;
+      continue;
+    }
+
+    if(*p == '-' && *(p+1) == '='){
+      push_back(tokens, new_token(TK_MINUS_EQ, "-=", 0));
+      p+=2;
+      continue;
+    }
+
+    if(*p == '*' && *(p+1) == '='){
+      push_back(tokens, new_token(TK_MUL_EQ, "*=", 0));
+      p+=2;
+      continue;
+    }
+
+    if(*p == '/' && *(p+1) == '='){
+      push_back(tokens, new_token(TK_DIV_EQ, "/=", 0));
+      p+=2;
+      continue;
+    }
+
+    
     
     if(*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' || *p == ')' || *p == '<' || *p == '>' || *p == ';' || *p == '=' || *p == '{' || *p == '}'){
       push_back(tokens, new_token(*p, p, 0));

@@ -65,7 +65,9 @@ Node* term(){
 }
 
 Node* unary(){
-  if(consume('+')){
+  if(consume(TK_INC )){
+    // ++a -> a = a + 1; a;
+  }else if(consume('+')){
     return term();
   }else if(consume('-')){
     return new_node('-', new_node_num(0), term());
@@ -144,9 +146,16 @@ Node *expr(){
 
 Node *assign(){
   Node *n = expr();
-  while(consume('='))
-    n = new_node('=', n, assign());
-  return n;
+  for(;;){
+    if(consume('=')){
+      n = new_node('=', n, assign());
+    }else if(consume(TK_PLUS_EQ)){
+      // a+=2; -> a = a + 2;
+      n = new_node('=', n, new_node('+', n, assign()));
+    }else{
+      return n;
+    }
+  }
 }
 
 Node *block(){

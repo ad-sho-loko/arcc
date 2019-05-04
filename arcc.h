@@ -14,7 +14,13 @@ enum{
   TK_WHILE,
   TK_ELSE,
   TK_AND,
-  TK_OR
+  TK_OR,
+  TK_INC,
+  TK_DEC,
+  TK_PLUS_EQ,
+  TK_MINUS_EQ,
+  TK_MUL_EQ,
+  TK_DIV_EQ
 };
 
 enum{
@@ -32,7 +38,13 @@ enum{
   ND_ELSE,
   ND_BLOCK,
   ND_AND,
-  ND_OR
+  ND_OR,
+  ND_INC,
+  ND_DEC,
+  ND_PLUS_EQ,
+  ND_MINUS_EQ,
+  ND_MUL_EQ,
+  ND_DIV_EQ
 };
 
 // A variable-length array.

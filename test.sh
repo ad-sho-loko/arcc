@@ -62,4 +62,5 @@ try 5 'if(1 == 1 || 1 == 1) return 5;'
 try 5 'if(1 == 2 || 1 == 1) return 5;'
 try 5 'if(1 == 1 || 1 == 2) return 5;'
 try 99 'a = 5; if(1 == 1 && a == 5){return 99;}'
+try 4 'a = 3; a+=1; return a;'
 echo ok
