@@ -68,4 +68,5 @@ try 4 'a = 2; a*=2; return a;'
 try 4 'a = 8; a/=2; return a;'
 try 3 'if(1==0){return 2;}else if(2 == 2){return 3;}else{return 4;}'
 try 10 'if(1==0){return 2;}else if(1 == 0){return 5;}return 10;'
+try 2 'a = 1; while(a == 1){ a += 1;} return 2;'
 echo ok

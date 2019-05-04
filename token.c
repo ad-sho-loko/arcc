@@ -159,6 +159,12 @@ Vector *tokenize(char *p){
       p+=4;
       continue;
     }
+
+    if(strncmp(p, "while", 5) == 0 && !is_alnum(p[5])){
+      push_back(tokens, new_token(TK_WHILE, p, 0));
+      p+=5;
+      continue;
+    }    
    
     if(is_valid_leading(*p)){
       int len = 1;

@@ -42,7 +42,19 @@ void gen(Node *node){
       printf("  jmp %s\n", new_label("end", lcnt));      
     }
     printf("%s:\n", new_label("end", lcnt));
+    return;
+  }
 
+  if(node->ty == ND_WHILE){
+    int lcnt = next_label++;
+    printf("%s:\n", new_label("begin", lcnt));
+    gen(node->cond);
+    out("pop rax");
+    out("cmp rax, 1");
+    printf("  jne %s\n", new_label("end", lcnt));
+    gen(node->then);
+    printf("  jmp %s\n", new_label("begin", lcnt));
+    printf("%s:\n", new_label("end", lcnt));
     return;
   }
 

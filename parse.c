@@ -199,6 +199,15 @@ Node *if_stmt(){
   return n;
 }
 
+Node *while_stmt(){
+  expect('(');
+  Node *n = new_node(ND_WHILE, NULL, NULL);
+  n->cond = expr();
+  expect(')');
+  n->then = block();
+  return n;
+}
+
 Node *stmt(){
   Node* n;
   if(consume(TK_RETURN)){
@@ -206,6 +215,8 @@ Node *stmt(){
     expect(';');
   }else if(consume(TK_IF)){
     n = if_stmt();
+  }else if(consume(TK_WHILE)){
+    n = while_stmt();
   }else{
     n = assign();
     expect(';');
