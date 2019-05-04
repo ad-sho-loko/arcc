@@ -152,6 +152,12 @@ Node *assign(){
     }else if(consume(TK_PLUS_EQ)){
       // a+=2; -> a = a + 2;
       n = new_node('=', n, new_node('+', n, assign()));
+    }else if(consume(TK_MINUS_EQ)){
+      n = new_node('=', n, new_node('-', n, assign()));
+    }else if(consume(TK_MUL_EQ)){
+      n = new_node('=', n, new_node('*', n, assign()));
+    }else if(consume(TK_DIV_EQ)){
+      n = new_node('=', n, new_node('/', n, assign()));
     }else{
       return n;
     }
