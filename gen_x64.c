@@ -1,5 +1,14 @@
 #include <stdio.h>
+#include <string.h>
 #include "arcc.h"
+
+static int next_label = 1;
+
+static char *new_label(char *sign, int cnt){
+  char *s = malloc(sizeof(char)*256);
+  snprintf(s, 256, ".L%s%03d", sign, cnt);
+  return s;
+}
 
 void gen_lval(Node *node){
   if(node->ty != ND_IDENT)
@@ -16,18 +25,25 @@ void gen(Node *node){
     gen(node->cond);
     out("pop rax");
     out("cmp rax, 1");
+
+    int lcnt = next_label;
+    next_label++;
+
     if(node->els != NULL){
-      out("jne .Lelse001");
+      printf("  jne %s\n", new_label("else", lcnt));
     }else{
-      out("jne .Lend001");
+      printf("  jne %s\n", new_label("end", lcnt));
     }
+    
     gen(node->then);
+
     if(node->els != NULL){
-      out(".Lelse001:");
+      printf("%s:\n", new_label("else", lcnt));
       gen(node->els);
-      out("jmp .Lend001");
+      printf("  jmp %s\n", new_label("end", lcnt));      
     }
-    out(".Lend001:");
+    printf("%s:\n", new_label("end", lcnt));
+
     return;
   }
 
