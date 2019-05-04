@@ -188,7 +188,11 @@ Node *if_stmt(){
   n->cond = expr();
   expect(')');
   n->then = block();
-  // todo : else-if
+  if(consume(TK_ELSE_IF)){
+    n->els = if_stmt();
+    return n;
+  }
+
   if(consume(TK_ELSE)){
     n->els = block();
   }

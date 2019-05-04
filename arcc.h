@@ -20,7 +20,8 @@ enum{
   TK_PLUS_EQ,
   TK_MINUS_EQ,
   TK_MUL_EQ,
-  TK_DIV_EQ
+  TK_DIV_EQ,
+  TK_ELSE_IF
 };
 
 enum{

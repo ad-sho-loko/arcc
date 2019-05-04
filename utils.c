@@ -131,7 +131,14 @@ char* stringfy_token(int tkn_kind){
   case 266: return "TK_WHILE";
   case 267: return "TK_ELSE";
   case 268: return "TK_AND";
-  case 269: return "TK_OR";    
+  case 269: return "TK_OR";
+  case 270: return "TK_INC";
+  case 271: return "TK_DEC";
+  case 272: return "TK_PLUS_EQ";
+  case 273: return "TK_MINUS_EQ";
+  case 274: return "TK_MUL_EQ";
+  case 275: return "TK_DIV_EQ";
+  case 276: return "TK_ELSE_IF";
   default: return "Unknown";
   }
 }
@@ -157,8 +164,11 @@ char* stringfy_node(int node_kind){
   case 266: return "ND_WHILE";
   case 267: return "ND_ELSE";
   case 268: return "ND_BLOCK";
-  case 269: return "TK_AND";    
-  case 270: return "TK_OR";    
+  case 269: return "ND_AND";    
+  case 270: return "ND_OR";
+  case 271: return "ND_INC";
+  case 272: return "ND_DEC";
+  case 273: return "ND_ELSE_IF";
   default: return "Unknown";
   }
 }
