@@ -1,5 +1,5 @@
 ##!/bin/bash
-
+0;95;0c
 try(){
     expected="$1"
     input="$2"
@@ -70,4 +70,9 @@ try 3 'if(1==0){return 2;}else if(2 == 2){return 3;}else{return 4;}'
 try 10 'if(1==0){return 2;}else if(1 == 0){return 5;}return 10;'
 try 2 'a = 1; while(a == 1){ a += 1;} return a;'
 try 5 'for(a = 1; a<5; a+=1){ a+=1;} return a;'
+try 10 'for(;;){return 10;}'
+try 10 'for(a=10;;){return a;}'
+try 10 'a = 10; for(;a<100;){return a;}'
+try 10 'a = 10; for(;;a+=1){return a;}'
+try 100 'a = 1; for(;a<100;){a+=1;} return a;'
 echo ok

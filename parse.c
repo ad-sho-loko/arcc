@@ -1,5 +1,4 @@
 #include "arcc.h"
-
 static int pos = 0;
 
 Node *new_node(int ty, Node *lhs, Node *rhs){
@@ -211,13 +210,22 @@ Node *while_stmt(){
 Node *for_stmt(){
   expect('(');
   Node *n = new_node(ND_FOR, NULL, NULL);
-  // todo : check correct priority.
-  n->init = assign();
-  expect(';');
-  n->cond = expr();
-  expect(';');
-  n->last = assign();
-  expect(')');
+
+  if(!consume(';')){
+    n->init = assign();
+    expect(';');
+  }
+  
+  if(!consume(';')){
+    n->cond = assign();
+    expect(';');
+  }
+  
+  if(!consume(')')){
+    n->last = assign();
+    expect(')');
+  }
+  
   n->then = block();
   return n;
 }

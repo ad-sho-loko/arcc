@@ -60,14 +60,24 @@ void gen(Node *node){
 
   if(node->ty == ND_FOR){
     int lcnt = next_label++;
-    gen(node->init);
+    if(node->init != NULL){
+      gen(node->init);
+    }
+    
     printf("%s:\n", new_label("begin", lcnt));
-    gen(node->cond);
-    out("pop rax");
-    out("cmp rax, 1");
-    printf("  jne %s\n", new_label("end", lcnt));
+
+    if(node->cond != NULL){
+      gen(node->cond);
+      out("pop rax");
+      out("cmp rax, 1");
+      printf("  jne %s\n", new_label("end", lcnt));
+    }
+    
     gen(node->then);
-    gen(node->last);
+    if(node->last != NULL){
+      gen(node->last);
+    }
+    
     printf("  jmp %s\n", new_label("begin", lcnt));
     printf("%s:\n", new_label("end", lcnt));
     return; 
