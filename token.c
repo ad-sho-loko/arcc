@@ -125,7 +125,7 @@ Vector *tokenize(char *p){
 
     
     
-    if(*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' || *p == ')' || *p == '<' || *p == '>' || *p == ';' || *p == '=' || *p == '{' || *p == '}'){
+    if(*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' || *p == ')' || *p == '<' || *p == '>' || *p == ';' || *p == '=' || *p == '{' || *p == '}' || *p == ','){
       push_back(tokens, new_token(*p, p, 0));
       p++;
       continue;
@@ -183,7 +183,7 @@ Vector *tokenize(char *p){
       continue;
     }
     
-    error("Line%d in tokenize.c :cannot tokenize %s", __LINE__, p);
+    error("Line.%d in token.c : cannot tokenize %s", __LINE__, p);
   }
   push_back(tokens, new_token(TK_EOF, p, 0));
   return tokens;

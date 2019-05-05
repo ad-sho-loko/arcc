@@ -2,8 +2,7 @@
 #include "arcc.h"
 Vector *nodes;
 Vector *tokens;
-Map *map;
-Map *func_map;
+Map *global_env;
 
 int main(int argc, char **argv) {
   if (argc != 2) {
@@ -12,8 +11,8 @@ int main(int argc, char **argv) {
   }
 
   nodes = new_vector();
-  map = new_map();
-  func_map = new_map();
+  global_env = new_map();
+  
   printf(".intel_syntax noprefix\n");
   printf(".global main\n");
     

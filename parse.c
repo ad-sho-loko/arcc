@@ -1,5 +1,7 @@
 #include "arcc.h"
+
 static int pos = 0;
+static Map *local_env;
 
 Node *new_node(int ty, Node *lhs, Node *rhs){
   Node* n = malloc(sizeof(Node));
@@ -20,7 +22,7 @@ Node *new_node_ident(char* name){
   Node *n = malloc(sizeof(Node));
   n->ty = ND_IDENT;
   n->name = name;
-  map_puti(map, name, (map_len(map) + 1) * 4);
+  map_puti(local_env, name, (map_len(local_env) + 1) * 4);
   return n;
 }
 
@@ -28,7 +30,6 @@ Node *new_node_func(char* name){
   Node *n = malloc(sizeof(Node));
   n->ty = ND_FUNC;
   n->name = name;
-  map_puti(func_map, name, 0);
   return n;
 }
 
@@ -273,6 +274,10 @@ void program(){
   }
 }
 
+void reset_local_env(){
+  local_env = new_map();
+}
+
 void toplevel(){
   while(((Token*)tokens->data[pos])->ty != TK_EOF){
     Token *t = ((Token*)tokens->data[pos]);
@@ -282,12 +287,14 @@ void toplevel(){
       error("Line%d in parse.c : 関数の宣言から始める必要があります", __LINE__);
     }
     push_back(nodes, new_node_declare_func(t->name));
+
+    reset_local_env();
+    map_putm(global_env, t->name, local_env);
     
     // args.
     expect('(');
     while(((Token*)tokens->data[pos])->ty != ')'){
       Token *now = (Token*)tokens->data[pos];
-      // todo : 今のままだとMain関数が一つしか対応していない. 関数ごとにmapを分けるべき.
       push_back(nodes, new_node_ident(now->name));
       consume(',');
     }
@@ -296,7 +303,9 @@ void toplevel(){
     // body.
     expect('{');
     program();
-    expect('}');
+    expect('}');    
     push_back(nodes, new_node(ND_FUNC_END, NULL, NULL));
   }
 }
+
+

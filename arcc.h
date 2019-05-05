@@ -87,6 +87,8 @@ typedef struct{
 Map *new_map();
 int map_geti(Map* m, char *key);
 void map_puti(Map* m, char* key, int value);
+Map *map_getm(Map* m, char *key);
+void map_putm(Map* m, char* key, Map* value);
 int map_len(Map* m);
 
 void error(char* fmt, ...);
@@ -112,5 +114,4 @@ void gen_top();
 
 extern Vector *nodes;
 extern Vector *tokens;
-extern Map *map;
-extern Map *func_map;
+extern Map *global_env;

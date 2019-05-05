@@ -3,6 +3,7 @@
 #include "arcc.h"
 
 static int next_label = 1;
+static Map* now_env;
 
 static int align16(int addr){
 }
@@ -17,10 +18,12 @@ void gen_top(){
   for(int i=0; i<nodes->len; i++){
     if(((Node*)nodes->data[i])->ty == ND_DEC_FUNC){
       // prologue
-      printf("%s:\n", ((Node*)nodes->data[i])->name);
+      Node * n = (Node*)nodes->data[i];
+      now_env = map_getm(global_env, n->name);
+      printf("%s:\n",n->name);
       out("push rbp");
       out("mov rbp, rsp");
-      printf("  sub rsp, %d\n", (map_len(map) + 1) * 4);
+      printf("  sub rsp, %d\n", (map_len(now_env) + 1) * 4);
     }else if(((Node*)nodes->data[i])->ty == ND_FUNC_END){
       // epiogue
       out("mov rsp, rbp");
@@ -38,21 +41,13 @@ void gen_lval(Node *node){
   if(node->ty != ND_IDENT)
     error("Line.%d in gen.c : 左辺は変数でなければいけません", __LINE__);
 
-  int offset = map_geti(map, node->name);
+  int offset = map_geti(now_env, node->name);
   out("mov rax, rbp");
   printf("  sub rax, %d\n", offset);
   out("push rax");
 }
 
-void gen(Node *node){
-  if(node->ty == ND_DEC_FUNC){
-    printf("%s:\n", node->name);
-    out("push rbp");
-    out("mov rbp, rsp");
-    printf("  sub rsp, %d\n", (map_len(map) + 1) * 4);
-    return;
-  }
-  
+void gen(Node *node){  
   if(node->ty == ND_IF){
     gen(node->cond);
     out("pop rax");
