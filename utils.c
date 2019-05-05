@@ -44,6 +44,7 @@ void push_backi(Vector *v, int elm){
 }
 
 void debug_vector_token(Vector *v){
+  fprintf(stderr, "======Tokens======\n");
   for(int i=0; i<v->len; i++){
     Token* t = (Token*)v->data[i];
     fprintf(stderr, "token[%d]{ ty:%s, input:%s, val:%d, name:%s }\n", i,  stringfy_token(t->ty), t->input, t->val, t->name);
@@ -51,6 +52,7 @@ void debug_vector_token(Vector *v){
 }
 
 void debug_vector_nodes(Vector *v){
+  fprintf(stderr, "======Nodes======\n");
   for(int i=0; i<v->len; i++){
     Node *n = (Node*)v->data[i];
     char* lhs;

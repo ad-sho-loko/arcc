@@ -13,7 +13,7 @@ try(){
     actual="$?"
 
     if [ "$actual" = "$expected" ]; then
-        echo "$input => $actual"
+        echo "\e[33m$input => $actual\e[m\n"
     else
         echo "[Failed] $input => $actual"
         echo "$expected is expected, but $actual"
