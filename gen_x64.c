@@ -121,6 +121,12 @@ void gen(Node *node){
     out("ret");
     return;
   }
+
+  if(node->ty == ND_FUNC){
+    printf("  call %s\n", node->name);
+    out("push rax");
+    return ;
+  }
   
   gen(node->lhs);
   gen(node->rhs);

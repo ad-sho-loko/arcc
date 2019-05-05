@@ -1,5 +1,5 @@
 ##!/bin/bash
-0;95;0c
+
 try(){
     expected="$1"
     input="$2"
@@ -7,7 +7,7 @@ try(){
 
     ## build
     ./arcc "$input" > tmp.s
-    gcc -o tmp tmp.s
+    gcc -o tmp tmp.s foo.o
     ./tmp
 
     actual="$?"
@@ -75,4 +75,5 @@ try 10 'for(a=10;;){return a;}'
 try 10 'a = 10; for(;a<100;){return a;}'
 try 10 'a = 10; for(;;a+=1){return a;}'
 try 100 'a = 1; for(;a<100;){a+=1;} return a;'
+try 5 'return foo();'
 echo ok

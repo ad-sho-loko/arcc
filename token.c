@@ -171,7 +171,6 @@ Vector *tokenize(char *p){
       p+=3;
       continue;
     }    
-
     
     if(is_valid_leading(*p)){
       int len = 1;

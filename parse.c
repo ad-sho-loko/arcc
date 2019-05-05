@@ -24,6 +24,14 @@ Node *new_node_ident(char* name){
   return n;
 }
 
+Node *new_node_func(char* name){
+  Node *n = malloc(sizeof(Node));
+  n->ty = ND_FUNC;
+  n->name = name;
+  map_puti(func_map, name, 0);
+  return n;
+}
+
 int consume(int ty){
   if(((Token*)tokens->data[pos])->ty != ty)
     return 0;
@@ -56,6 +64,13 @@ Node* term(){
   }
 
   if(tkn->ty == TK_IDENT){
+    // function
+    if(consume('(')){
+      expect(')');
+      return new_node_func(tkn->name);
+    }
+
+    // variable
     return new_node_ident(tkn->name);
   }
   

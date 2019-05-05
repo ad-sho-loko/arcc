@@ -168,7 +168,7 @@ char* stringfy_node(int node_kind){
   case 270: return "ND_OR";
   case 271: return "ND_INC";
   case 272: return "ND_DEC";
-  case 273: return "ND_ELSE_IF";
+  case 273: return "ND_FUNC";
   default: return "Unknown";
   }
 }

@@ -42,6 +42,7 @@ enum{
   ND_OR,
   ND_INC,
   ND_DEC,
+  ND_FUNC
 };
 
 // A variable-length array.
@@ -108,3 +109,4 @@ void gen(Node *n);
 extern Vector *nodes;
 extern Vector *tokens;
 extern Map *map;
+extern Map *func_map;
