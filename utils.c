@@ -86,11 +86,6 @@ Map* new_map(){
   return m;
 }
 
-void map_put(Map *m, char *key, void *value) {
-  push_back(m->keys, key);
-  push_back(m->values, value);
-}
-
 void* map_get(Map *m, char *key){
   for(int i=0; i<m->keys->len; i++){
     if (strcmp(m->keys->data[i], key) == 0){
@@ -99,6 +94,16 @@ void* map_get(Map *m, char *key){
   }
   return NULL;
 }
+
+void map_put(Map *m, char *key, void *value) {
+  if(map_get(m, key) != NULL){
+    return;
+  }
+
+  push_back(m->keys, key);
+  push_back(m->values, value);
+}
+
 
 void map_puti(Map *m, char *key, int value){
   map_put(m, key, (void*)(intptr_t)value);

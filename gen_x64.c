@@ -20,7 +20,7 @@ void gen_top(){
       printf("%s:\n",n->name);
       out("push rbp");
       out("mov rbp, rsp");
-      printf("  sub rsp, %d\n", (map_len(now_env) + 1) * 4);
+      printf("  sub rsp, %d\n", map_len(now_env) * 4);
     }else if(((Node*)nodes->data[i])->ty == ND_FUNC_END){
       // epiogue
       out("mov rsp, rbp");

@@ -22,7 +22,7 @@ Node *new_node_ident(char* name){
   Node *n = malloc(sizeof(Node));
   n->ty = ND_IDENT;
   n->name = name;
-  map_puti(local_env, name, (map_len(local_env) + 1) * 4);
+  map_puti(local_env, name, (map_len(local_env) + 1) * sizeof(int));
   return n;
 }
 
