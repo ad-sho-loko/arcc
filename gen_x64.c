@@ -4,6 +4,9 @@
 
 static int next_label = 1;
 
+static int align16(int addr){
+}
+
 static char *new_label(char *sign, int cnt){
   char *s = malloc(sizeof(char)*256);
   snprintf(s, 256, ".L%s%03d", sign, cnt);
@@ -21,6 +24,14 @@ void gen_lval(Node *node){
 }
 
 void gen(Node *node){
+  if(node->ty == ND_DEC_FUNC){
+    printf("%s:\n", node->name);
+    out("push rbp");
+    out("mov rbp, rsp");
+    printf("  sub rsp, %d\n", (map_len(map) + 1) * 4);
+    return;
+  }
+  
   if(node->ty == ND_IF){
     gen(node->cond);
     out("pop rax");
@@ -123,6 +134,7 @@ void gen(Node *node){
   }
 
   if(node->ty == ND_FUNC){
+    // TODO : align 16 byte.
     printf("  call %s\n", node->name);
     out("push rax");
     return ;

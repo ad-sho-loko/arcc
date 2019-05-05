@@ -42,7 +42,8 @@ enum{
   ND_OR,
   ND_INC,
   ND_DEC,
-  ND_FUNC
+  ND_FUNC,
+  ND_DEC_FUNC
 };
 
 // A variable-length array.
@@ -103,6 +104,7 @@ Node *equality();
 Node *assign();
 Node *stmt();
 void program();
+void toplevel();
 Vector *tokenize(char *p);
 void gen(Node *n);
 

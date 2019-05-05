@@ -16,16 +16,11 @@ int main(int argc, char **argv) {
   func_map = new_map();
   printf(".intel_syntax noprefix\n");
   printf(".global main\n");
-  printf("main:\n");
-
-  out("push rbp");
-  out("mov rbp, rsp");
     
   tokens = tokenize(argv[1]);
   debug_vector_token(tokens);
-  program();
+  toplevel();
   debug_vector_nodes(nodes);
-  printf("  sub rsp, %d\n", (map_len(map) + 1) * 4);
   
   for(int i=0; i<nodes->len; i++){
     gen(nodes->data[i]);

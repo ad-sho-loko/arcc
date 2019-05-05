@@ -32,6 +32,13 @@ Node *new_node_func(char* name){
   return n;
 }
 
+Node *new_node_declare_func(char *name){
+  Node *n = malloc(sizeof(Node));
+  n->ty = ND_DEC_FUNC;
+  n->name = name;
+  return n;
+}
+
 int consume(int ty){
   if(((Token*)tokens->data[pos])->ty != ty)
     return 0;
@@ -264,7 +271,35 @@ Node *stmt(){
 }
 
 void program(){
-  while(((Token*)tokens->data[pos])->ty != TK_EOF){
+  while(((Token*)tokens->data[pos])->ty != '}'){
     push_back(nodes, stmt());
   }
+}
+
+void toplevel(){
+  while(((Token*)tokens->data[pos])->ty != TK_EOF){
+    Token *t = ((Token*)tokens->data[pos]);
+
+    // func-name
+    if(!consume(TK_IDENT)){
+      error("関数の宣言から始める必要があります");
+      exit(1);
+    }
+    push_back(nodes, new_node_declare_func(t->name));
+    
+    // args.
+    expect('(');
+    while(((Token*)tokens->data[pos])->ty != ')'){
+      Token *now = (Token*)tokens->data[pos];
+      // todo : 今のままだとMain関数が一つしか対応していない. 関数ごとにmapを分けるべき.
+      push_back(nodes, new_node_ident(now->name));
+      consume(',');
+    }
+    expect(')');
+  
+    // body.
+    expect('{');
+    program();
+    expect('}'); 
+  }  
 }
