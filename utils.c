@@ -60,9 +60,11 @@ void debug_vector_nodes(Vector *v){
     char* cond;
     char* then;
     char* els;
+    char *name;
     if(n->lhs == NULL){ lhs = "";} else { lhs = stringfy_node(n->lhs->ty);}
     if(n->rhs == NULL){ rhs = "";} else { rhs = stringfy_node(n->rhs->ty);}
     if(n->cond == NULL){ cond = "";} else { cond = stringfy_node(n->cond->ty);}
+    if(n->name == NULL){name ="";}else {name = n->name;}
     if(n->then == NULL){ then = "";} else {
       then = stringfy_node(n->then->ty);
       if(n->then->ty == ND_BLOCK) {
@@ -75,7 +77,7 @@ void debug_vector_nodes(Vector *v){
         debug_vector_nodes(n->els->items);
       }
     }
-    fprintf(stderr, "nodes[%d]{ ty:%s, lhs:%s, rhs:%s cond:%s, then:%s, els=%s}\n", i, stringfy_node(n->ty), lhs, rhs, cond, then, els);
+    fprintf(stderr, "nodes[%d]{ ty:%s, lhs:%s, rhs:%s name:%s, cond:%s, then:%s, els=%s}\n", i, stringfy_node(n->ty), lhs, rhs, name, cond, then, els);
   }
 }
 
