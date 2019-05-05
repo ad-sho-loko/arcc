@@ -297,6 +297,6 @@ void toplevel(){
     expect('{');
     program();
     expect('}');
+    push_back(nodes, new_node(ND_FUNC_END, NULL, NULL));
   }
-  push_back(nodes, new_node(ND_EOF, NULL, NULL));
 }

@@ -43,7 +43,8 @@ enum{
   ND_INC,
   ND_DEC,
   ND_FUNC,
-  ND_DEC_FUNC
+  ND_DEC_FUNC,
+  ND_FUNC_END
 };
 
 // A variable-length array.

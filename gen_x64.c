@@ -16,25 +16,20 @@ static char *new_label(char *sign, int cnt){
 void gen_top(){
   for(int i=0; i<nodes->len; i++){
     if(((Node*)nodes->data[i])->ty == ND_DEC_FUNC){
-
-      // プロローグ
+      // prologue
       printf("%s:\n", ((Node*)nodes->data[i])->name);
       out("push rbp");
       out("mov rbp, rsp");
       printf("  sub rsp, %d\n", (map_len(map) + 1) * 4);
-      
-      // func-body
-      i++;
-      while(((Node*)nodes->data[i])->ty != ND_DEC_FUNC && ((Node*)nodes->data[i])->ty != ND_EOF){
-        gen(nodes->data[i++]);
-        out("pop rax");
-      }
-      
-      // エピローグ
+    }else if(((Node*)nodes->data[i])->ty == ND_FUNC_END){
+      // epiogue
       out("mov rsp, rbp");
       out("pop rbp");
       out("ret");
-      i--;
+    }else{
+      // body
+      gen(nodes->data[i]);
+      out("pop rax");
     }
   }
 }

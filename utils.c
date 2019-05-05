@@ -172,6 +172,7 @@ char* stringfy_node(int node_kind){
   case 272: return "ND_DEC";
   case 273: return "ND_FUNC";
   case 274: return "ND_DEC_FUNC";
+  case 275: return "ND_FUNC_END";
   default: return "Unknown";
   }
 }
