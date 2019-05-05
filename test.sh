@@ -1,5 +1,4 @@
 ##!/bin/bash
-0;95;0c0;95;0c
 try(){
     expected="$1"
     input="$2"
