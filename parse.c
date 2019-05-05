@@ -30,6 +30,7 @@ Node *new_node_func(char* name){
   Node *n = malloc(sizeof(Node));
   n->ty = ND_FUNC;
   n->name = name;
+  n->items = NULL;
   return n;
 }
 
@@ -70,10 +71,16 @@ Node* term(){
   }
 
   if(tkn->ty == TK_IDENT){
-    // function
+    // call function
     if(consume('(')){
+      Node *n = new_node_func(tkn->name);
+      n->items = new_vector();
+      while(((Token*)(tokens->data[pos]))->ty != ')'){
+        push_back(n->items, equality());
+        consume(',');
+      }
       expect(')');
-      return new_node_func(tkn->name);
+      return n;
     }
 
     // variable
@@ -288,6 +295,7 @@ void toplevel(){
     }
     push_back(nodes, new_node_declare_func(t->name));
 
+    // set environment.
     reset_local_env();
     map_putm(global_env, t->name, local_env);
     
@@ -296,6 +304,7 @@ void toplevel(){
     while(((Token*)tokens->data[pos])->ty != ')'){
       Token *now = (Token*)tokens->data[pos];
       push_back(nodes, new_node_ident(now->name));
+      expect(TK_IDENT);
       consume(',');
     }
     expect(')');

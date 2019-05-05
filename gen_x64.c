@@ -5,9 +5,6 @@
 static int next_label = 1;
 static Map* now_env;
 
-static int align16(int addr){
-}
-
 static char *new_label(char *sign, int cnt){
   char *s = malloc(sizeof(char)*256);
   snprintf(s, 256, ".L%s%03d", sign, cnt);
@@ -150,6 +147,16 @@ void gen(Node *node){
   }
 
   if(node->ty == ND_FUNC){
+    // if args exists
+    if(node->items != NULL){
+      for(int i=0; i<node->items->len; i++){
+        // todo : now only unitl 2 args
+        gen(node->items->data[i]);
+        if(i == 0) out("pop rdi");
+        if(i == 1) out("pop rsi");
+      }
+    }
+
     // TODO : align 16 byte.
     printf("  call %s\n", node->name);
     out("push rax");
