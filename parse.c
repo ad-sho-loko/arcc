@@ -313,9 +313,10 @@ void toplevel(){
       arg_len++;
     }
     expect(')');
+
+    // todo :refactor
     n->arg_num = arg_len;
     
-    // body.
     expect('{');
     program();
     expect('}');    

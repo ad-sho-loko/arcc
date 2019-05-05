@@ -22,15 +22,12 @@ void gen_top(){
       printf("%s:\n",n->name);
       out("push rbp");
       out("mov rbp, rsp");
-      printf("  sub rsp, %d\n", map_len(now_env) * 8);
+      printf("  sub rsp, %d\n", (map_len(now_env)) * 8);
 
       // todo : only two args.
-      if(n->arg_num != 0){
-        printf("  mov [ebp-8], rdi\n");
-        printf("  mov [ebp-16], rsi\n");
+      for(int i=0; i < n->arg_num; i++){
+        printf("  mov [rbp-%d], %s\n", (i+1)*8, regs[i]);
       }
-      //for(int i=0; i < n->arg_num; i++){
-      //}
     }else if(((Node*)nodes->data[i])->ty == ND_FUNC_END){
       // epiogue
       out("mov rsp, rbp");
