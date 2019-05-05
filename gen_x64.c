@@ -13,6 +13,32 @@ static char *new_label(char *sign, int cnt){
   return s;
 }
 
+void gen_top(){
+  for(int i=0; i<nodes->len; i++){
+    if(((Node*)nodes->data[i])->ty == ND_DEC_FUNC){
+
+      // プロローグ
+      printf("%s:\n", ((Node*)nodes->data[i])->name);
+      out("push rbp");
+      out("mov rbp, rsp");
+      printf("  sub rsp, %d\n", (map_len(map) + 1) * 4);
+      
+      // func-body
+      i++;
+      while(((Node*)nodes->data[i])->ty != ND_DEC_FUNC && ((Node*)nodes->data[i])->ty != ND_EOF){
+        gen(nodes->data[i++]);
+        out("pop rax");
+      }
+      
+      // エピローグ
+      out("mov rsp, rbp");
+      out("pop rbp");
+      out("ret");
+      i--;
+    }
+  }
+}
+
 void gen_lval(Node *node){
   if(node->ty != ND_IDENT)
     error("左辺は変数でなければいけません");

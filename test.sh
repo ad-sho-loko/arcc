@@ -1,5 +1,5 @@
 ##!/bin/bash
-
+0;95;0c0;95;0c
 try(){
     expected="$1"
     input="$2"
@@ -67,7 +67,7 @@ try 4 'main(){a = 5; a-=1; return a;}'
 try 4 'main(){a = 2; a*=2; return a;}'
 try 4 'main(){a = 8; a/=2; return a;}'
 try 3 'main(){if(1==0){return 2;}else if(2 == 2){return 3;}else{return 4;}}'
-# try 10 'main(){ if(1==0){return 2;} else if(1 == 0){return 5;} return 10;}'
+try 10 'main(){ if(1==0){return 2;} else if(1 == 0){return 5;} return 10;}'
 try 2 'main(){a = 1; while(a == 1){ a += 1;} return a;}'
 try 5 'main(){for(a = 1; a<5; a+=1){ a+=1;} return a;}'
 try 10 'main(){for(;;){return 10;}}'
@@ -76,6 +76,6 @@ try 10 'main(){a = 10; for(;a<100;){return a;}}'
 try 10 'main(){a = 10; for(;;a+=1){return a;}}'
 try 100 'main(){a = 1; for(;a<100;){a+=1;} return a;}'
 try 5 'main(){return foo();}'
-# try 5 'bar(){return 5;} main(){return bar();}'
+try 5 'bar(){return 5;} main(){return bar();}'
 # try 5 'plus(x, y){return x + y;} main(){ return plus(3,2);}'
 echo ok

@@ -300,6 +300,7 @@ void toplevel(){
     // body.
     expect('{');
     program();
-    expect('}'); 
-  }  
+    expect('}');
+  }
+  push_back(nodes, new_node(ND_EOF, NULL, NULL));
 }

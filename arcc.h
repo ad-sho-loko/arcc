@@ -107,6 +107,7 @@ void program();
 void toplevel();
 Vector *tokenize(char *p);
 void gen(Node *n);
+void gen_top();
 
 extern Vector *nodes;
 extern Vector *tokens;
