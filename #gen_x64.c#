@@ -22,7 +22,7 @@ void gen_top(){
       printf("%s:\n",n->name);
       out("push rbp");
       out("mov rbp, rsp");
-      printf("  sub rsp, %d\n", (map_len(now_env)) * 8);
+      printf("  sub rsp, %d\n", map_len(now_env) * 8);
 
       // todo : only two args.
       for(int i=0; i < n->arg_num; i++){

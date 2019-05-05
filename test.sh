@@ -85,4 +85,6 @@ try 5 'main(){return foo();}'
 try 5 'bar(){return 5;} main(){return bar();}'
 try 10 'bar(){a = 5; return a;} main(){a = 10; return a;}'
 try 5 'plus(x, y){return x + y;} main(){ return plus(3,2);}'
+try 10 'main(){x = 0; for(i = 0; i < 10; i+=1){x+=1;} return x;}'
+try 55 'sum(m, n) { acc = 0; for (i = m; i < n; i = i + 1) acc = acc + i; return acc;} main() {return sum(0, 11);}'
 echo ok
