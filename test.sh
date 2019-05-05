@@ -84,5 +84,5 @@ try 100 'main(){a = 1; for(;a<100;){a+=1;} return a;}'
 try 5 'main(){return foo();}'
 try 5 'bar(){return 5;} main(){return bar();}'
 try 10 'bar(){a = 5; return a;} main(){a = 10; return a;}'
-# try 5 'plus(x, y){return x + y;} main(){ return plus(3,2);}'
+try 5 'plus(x, y){return x + y;} main(){ return plus(3,2);}'
 echo ok

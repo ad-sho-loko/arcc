@@ -4,6 +4,7 @@
 
 static int next_label = 1;
 static Map* now_env;
+static char *regs[2] = {"rdi", "rsi"};
 
 static char *new_label(char *sign, int cnt){
   char *s = malloc(sizeof(char)*256);
@@ -15,12 +16,21 @@ void gen_top(){
   for(int i=0; i<nodes->len; i++){
     if(((Node*)nodes->data[i])->ty == ND_DEC_FUNC){
       // prologue
-      Node * n = (Node*)nodes->data[i];
+      Node *n = (Node*)nodes->data[i];
       now_env = map_getm(global_env, n->name);
+
       printf("%s:\n",n->name);
       out("push rbp");
       out("mov rbp, rsp");
       printf("  sub rsp, %d\n", map_len(now_env) * 8);
+
+      // todo : only two args.
+      if(n->arg_num != 0){
+        printf("  mov [ebp-8], rdi\n");
+        printf("  mov [ebp-16], rsi\n");
+      }
+      //for(int i=0; i < n->arg_num; i++){
+      //}
     }else if(((Node*)nodes->data[i])->ty == ND_FUNC_END){
       // epiogue
       out("mov rsp, rbp");
@@ -152,8 +162,7 @@ void gen(Node *node){
       for(int i=0; i<node->items->len; i++){
         // todo : now only unitl 2 args
         gen(node->items->data[i]);
-        if(i == 0) out("pop rdi");
-        if(i == 1) out("pop rsi");
+        printf("  pop %s\n", regs[i]);
       }
     }
 

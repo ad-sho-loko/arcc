@@ -37,6 +37,7 @@ Node *new_node_func(char* name){
 Node *new_node_declare_func(char *name){
   Node *n = malloc(sizeof(Node));
   n->ty = ND_DEC_FUNC;
+  n->arg_num = 0;
   n->name = name;
   return n;
 }
@@ -293,22 +294,27 @@ void toplevel(){
     if(!consume(TK_IDENT)){
       error("Line%d in parse.c : 関数の宣言から始める必要があります", __LINE__);
     }
-    push_back(nodes, new_node_declare_func(t->name));
-
+    char *func_name = t->name;
+    Node *n = new_node_declare_func(func_name);
+    push_back(nodes, n);
+    
     // set environment.
     reset_local_env();
     map_putm(global_env, t->name, local_env);
     
     // args.
+    int arg_len = 0;
     expect('(');
     while(((Token*)tokens->data[pos])->ty != ')'){
       Token *now = (Token*)tokens->data[pos];
       push_back(nodes, new_node_ident(now->name));
       expect(TK_IDENT);
       consume(',');
+      arg_len++;
     }
     expect(')');
-  
+    n->arg_num = arg_len;
+    
     // body.
     expect('{');
     program();
