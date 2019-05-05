@@ -41,7 +41,7 @@ void gen_top(){
 
 void gen_lval(Node *node){
   if(node->ty != ND_IDENT)
-    error("左辺は変数でなければいけません");
+    error("Line.%d in gen.c : 左辺は変数でなければいけません", __LINE__);
 
   int offset = map_geti(map, node->name);
   out("mov rax, rbp");

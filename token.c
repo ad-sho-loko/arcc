@@ -183,10 +183,8 @@ Vector *tokenize(char *p){
       continue;
     }
     
-    error("cannot tokenize %s", p);
-    exit(1);
+    error("Line%d in tokenize.c :cannot tokenize %s", __LINE__, p);
   }
-
   push_back(tokens, new_token(TK_EOF, p, 0));
   return tokens;
 }

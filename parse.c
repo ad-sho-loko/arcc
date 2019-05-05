@@ -49,8 +49,7 @@ int consume(int ty){
 void expect(int ty){
   int actual = ((Token*)(tokens->data[pos]))->ty;
   if(actual != ty){
-    error("expected=%c, but accutal=%c in parse.c", ty, actual);
-    exit(1);
+    error("Line%d in parse.c : expected=%c, but accutal=%c in parse.c", __LINE__, ty, actual);
   }
   pos++;
 }
@@ -59,8 +58,7 @@ Node* term(){
   if(consume('(')){
     Node *n = assign();
     if(!consume(')')){
-      error("unexpected branket `)`");
-      exit(1);
+      error("Line%d in parse.c : unexpected branket `)`", __LINE__);
     }
     return n;
   }
@@ -80,8 +78,7 @@ Node* term(){
     // variable
     return new_node_ident(tkn->name);
   }
-  
-  error("数値でも開きカッコでもないトークンです: %s", ((Token*)(tokens->data[pos]))->input);
+  error("Line%d in parse.c : 数値でも開きカッコでもないトークンです: %s", __LINE__ ,((Token*)(tokens->data[pos]))->input);
   exit(1);
 }
 
@@ -282,8 +279,7 @@ void toplevel(){
 
     // func-name
     if(!consume(TK_IDENT)){
-      error("関数の宣言から始める必要があります");
-      exit(1);
+      error("Line%d in parse.c : 関数の宣言から始める必要があります", __LINE__);
     }
     push_back(nodes, new_node_declare_func(t->name));
     
