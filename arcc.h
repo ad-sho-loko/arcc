@@ -95,6 +95,7 @@ int map_len(Map* m);
 void error(char* fmt, ...);
 void out(char* code);
 void printd(char *s);
+int do_align(int x, int align);
 void debug_vector_token(Vector *v);
 void debug_vector_nodes(Vector *v);
 char* stringfy_token(int tkn_kind);

@@ -22,7 +22,7 @@ void gen_top(){
       printf("%s:\n",n->name);
       out("push rbp");
       out("mov rbp, rsp");
-      printf("  sub rsp, %d\n", (map_len(now_env)) * 8);
+      printf("  sub rsp, %d\n", do_align((map_len(now_env)) * 8, 8));
 
       // todo : only two args.
       for(int i=0; i < n->arg_num; i++){
@@ -73,6 +73,7 @@ void gen(Node *node){
       printf("  jmp %s\n", new_label("end", lcnt));      
     }
     printf("%s:\n", new_label("end", lcnt));
+    out("push rax");
     return;
   }
 

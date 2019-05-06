@@ -18,6 +18,10 @@ void out(char* code){
   printf("  %s\n", code);
 }
 
+int do_align(int x, int align){
+  return (x + align - 1) & ~(align - 1);
+}
+
 void printd(char *s){
   fprintf(stderr, s);
 }
