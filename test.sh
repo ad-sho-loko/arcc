@@ -96,4 +96,6 @@ try 18 'bar(n){return n;} main(){a = 5; return bar(a+a) + bar(40/a);}'
 try 55 'fib(n){ if(n == 1 || n == 2) {return 1;} else {return fib(n-1) + fib(n-2);}} main(){ return fib(10); }'
 try 89 'fib(n){ if(n == 1 || n == 2) {return 1;} else {return fib(n-1) + fib(n-2);}} main(){ return fib(11); }'
 try 89 'fib(n){ if(n == 1 || n == 2) {return 1;} return fib(n-1) + fib(n-2);} main(){ return fib(11); }'
+try 5 'main(){ i = 0; for(; i < 10; i+=1){if(i == 5) break; } return i;}'
+try 5 'main(){ i = 0; while(i < 10){if(i == 5) break; i+=1;} return i;}'
 echo ok

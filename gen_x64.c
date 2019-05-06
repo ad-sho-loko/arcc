@@ -4,7 +4,10 @@
 
 static int next_label = 1;
 static Map* now_env;
+static char* now_scope_start;
+static char* now_scope_end;
 static char *regs[2] = {"rdi", "rsi"};
+
 
 static char *new_label(char *sign, int cnt){
   char *s = malloc(sizeof(char)*256);
@@ -68,7 +71,7 @@ void gen(Node *node){
     }else{
       printf("  jne %s\n", new_label("end", lcnt));
     }
-    
+
     gen(node->then);
 
     if(node->els != NULL){
@@ -83,8 +86,12 @@ void gen(Node *node){
 
   if(node->ty == ND_WHILE){
     int lcnt = next_label++;
-    printf("%s:\n", new_label("begin", lcnt));
+    now_scope_start = new_label("begin", lcnt);
+    now_scope_end = new_label("end", lcnt);
+
+    printf("%s:\n", now_scope_start);
     gen(node->cond);
+
     out("pop rax");
     out("cmp rax, 1");
     printf("  jne %s\n", new_label("end", lcnt));
@@ -96,31 +103,37 @@ void gen(Node *node){
 
   if(node->ty == ND_FOR){
     int lcnt = next_label++;
+    now_scope_start = new_label("begin", lcnt);
+    now_scope_end = new_label("end", lcnt);
     if(node->init != NULL){
       gen(node->init);
     }
+    printf("%s:\n", now_scope_start);
     
-    printf("%s:\n", new_label("begin", lcnt));
-
     if(node->cond != NULL){
       gen(node->cond);
       out("pop rax");
       out("cmp rax, 1");
       printf("  jne %s\n", new_label("end", lcnt));
     }
-    
+
     gen(node->then);
     if(node->last != NULL){
       gen(node->last);
     }
     
-    printf("  jmp %s\n", new_label("begin", lcnt));
-    printf("%s:\n", new_label("end", lcnt));
+    printf("  jmp %s\n", now_scope_start);
+    printf("%s:\n", now_scope_end);
     return; 
+  }
+
+  if(node->ty == ND_BREAK){
+    printf("  jmp %s # break. \n", now_scope_end);
+    return;
   }
   
   if(node->ty == ND_BLOCK){
-    for(int i=0; i<node->items->len; i++){
+    for(int i=0; i < node->items->len; i++){
       gen(node->items->data[i]);
     }
     return;

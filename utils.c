@@ -161,6 +161,7 @@ char* stringfy_token(int tkn_kind){
   case 274: return "TK_MUL_EQ";
   case 275: return "TK_DIV_EQ";
   case 276: return "TK_ELSE_IF";
+  case 277: return "ND_BREAK";
   default: return "Unknown";
   }
 }
@@ -193,6 +194,7 @@ char* stringfy_node(int node_kind){
   case 273: return "ND_FUNC";
   case 274: return "ND_DEC_FUNC";
   case 275: return "ND_FUNC_END";
+  case 277: return "ND_BREAK";
   default: return "Unknown";
   }
 }

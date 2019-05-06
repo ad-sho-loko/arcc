@@ -184,6 +184,12 @@ Vector *tokenize(char *p){
       p+=3;
       continue;
     }    
+
+    if(strncmp(p, "break", 5) == 0 && !is_alnum(p[5])){
+      push_back(tokens, new_token_reserved(TK_BREAK, p));
+      p+=5;
+      continue;
+    }    
     
     if(is_valid_leading(*p)){
       int len = 1;

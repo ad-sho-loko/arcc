@@ -21,7 +21,8 @@ enum{
   TK_MINUS_EQ,
   TK_MUL_EQ,
   TK_DIV_EQ,
-  TK_ELSE_IF
+  TK_ELSE_IF,
+  TK_BREAK
 };
 
 enum{
@@ -44,7 +45,8 @@ enum{
   ND_DEC,
   ND_FUNC,
   ND_DEC_FUNC,
-  ND_FUNC_END
+  ND_FUNC_END,
+  ND_BREAK
 };
 
 

@@ -269,6 +269,9 @@ Node *stmt(){
     n = while_stmt();
   }else if(consume(TK_FOR)){
     n = for_stmt();
+  }else if(consume(TK_BREAK)){
+    n = new_node(ND_BREAK, NULL, NULL);
+    expect(';');
   }else{
     n = assign();
     expect(';');
