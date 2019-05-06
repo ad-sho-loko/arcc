@@ -5,6 +5,7 @@
 static int next_label = 1;
 static Map* now_env;
 static char* now_scope_start;
+static char* now_scope_last;
 static char* now_scope_end;
 static char *regs[2] = {"rdi", "rsi"};
 
@@ -87,9 +88,11 @@ void gen(Node *node){
   if(node->ty == ND_WHILE){
     int lcnt = next_label++;
     now_scope_start = new_label("begin", lcnt);
+    now_scope_last = new_label("last", lcnt);
     now_scope_end = new_label("end", lcnt);
 
     printf("%s:\n", now_scope_start);
+    printf("%s:\n", now_scope_last); // forとの互換性のためwhileにも残しているが微妙.
     gen(node->cond);
 
     out("pop rax");
@@ -104,6 +107,7 @@ void gen(Node *node){
   if(node->ty == ND_FOR){
     int lcnt = next_label++;
     now_scope_start = new_label("begin", lcnt);
+    now_scope_last = new_label("last", lcnt);
     now_scope_end = new_label("end", lcnt);
     if(node->init != NULL){
       gen(node->init);
@@ -118,6 +122,7 @@ void gen(Node *node){
     }
 
     gen(node->then);
+    printf("%s:\n", now_scope_last);
     if(node->last != NULL){
       gen(node->last);
     }
@@ -128,7 +133,12 @@ void gen(Node *node){
   }
 
   if(node->ty == ND_BREAK){
-    printf("  jmp %s # break. \n", now_scope_end);
+    printf("  jmp %s\n", now_scope_end);
+    return;
+  }
+
+  if(node->ty == ND_CONTINUE){
+    printf("  jmp %s\n", now_scope_last);
     return;
   }
   

@@ -272,6 +272,9 @@ Node *stmt(){
   }else if(consume(TK_BREAK)){
     n = new_node(ND_BREAK, NULL, NULL);
     expect(';');
+  }else if(consume(TK_CONTINUE)){
+    n = new_node(ND_CONTINUE, NULL, NULL);
+    expect(';');
   }else{
     n = assign();
     expect(';');

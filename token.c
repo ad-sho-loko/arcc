@@ -190,6 +190,13 @@ Vector *tokenize(char *p){
       p+=5;
       continue;
     }    
+
+    if(strncmp(p, "continue", 8) == 0 && !is_alnum(p[8])){
+      push_back(tokens, new_token_reserved(TK_CONTINUE, p));
+      p+=8;
+      continue;
+    }    
+
     
     if(is_valid_leading(*p)){
       int len = 1;

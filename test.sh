@@ -98,4 +98,6 @@ try 89 'fib(n){ if(n == 1 || n == 2) {return 1;} else {return fib(n-1) + fib(n-2
 try 89 'fib(n){ if(n == 1 || n == 2) {return 1;} return fib(n-1) + fib(n-2);} main(){ return fib(11); }'
 try 5 'main(){ i = 0; for(; i < 10; i+=1){if(i == 5) break; } return i;}'
 try 5 'main(){ i = 0; while(i < 10){if(i == 5) break; i+=1;} return i;}'
+try 9 'main(){ a = 0; for(i=0; i<10; i+=1){if(i == 5) {continue;} a+=1; } return a; }'
+try 9 'main(){ i = 0; a = 0; while(i<10){if(i == 5) {i+=1; continue;} i+=1; a+=1; } return a; }'
 echo ok
