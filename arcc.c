@@ -10,16 +10,19 @@ int main(int argc, char **argv) {
     return 1;
   }
 
+  // init
   nodes = new_vector();
   global_env = new_map();
-  
-  printf(".intel_syntax noprefix\n");
-  printf(".global main\n");
-    
+
+  // tokenize
   tokens = tokenize(argv[1]);
   debug_vector_token(tokens);
+
+  // parse
   toplevel();
   debug_vector_nodes(nodes);
+
+  // generate-x64
   gen_top();
 
   return 0;  

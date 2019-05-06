@@ -47,6 +47,8 @@ enum{
   ND_FUNC_END
 };
 
+
+
 // A variable-length array.
 typedef struct {
   void **data;
@@ -76,6 +78,7 @@ typedef struct Node{
   char* name;
 } Node;
 
+// methods for vector.
 Vector *new_vector();
 void push_back(Vector *v, void* elm);
 
@@ -85,12 +88,18 @@ typedef struct{
   Vector* values;
 } Map;
 
+// methods for map.
 Map *new_map();
 int map_geti(Map* m, char *key);
 void map_puti(Map* m, char* key, int value);
 Map *map_getm(Map* m, char *key);
 void map_putm(Map* m, char* key, Map* value);
 int map_len(Map* m);
+
+// global variables.
+extern Vector *nodes;
+extern Vector *tokens;
+extern Map *global_env;
 
 void error(char* fmt, ...);
 void out(char* code);
@@ -101,6 +110,10 @@ void debug_vector_nodes(Vector *v);
 char* stringfy_token(int tkn_kind);
 char* stringfy_node(int node_kind);
 
+// token.c
+Vector *tokenize(char *p);
+
+// parse.c
 Node *add();
 Node *mul();
 Node *term();
@@ -108,12 +121,9 @@ Node *unary();
 Node *equality();
 Node *assign();
 Node *stmt();
-void program();
+void func_body();
 void toplevel();
-Vector *tokenize(char *p);
+
+// gen.c
 void gen(Node *n);
 void gen_top();
-
-extern Vector *nodes;
-extern Vector *tokens;
-extern Map *global_env;

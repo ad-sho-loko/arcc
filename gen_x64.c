@@ -13,6 +13,10 @@ static char *new_label(char *sign, int cnt){
 }
 
 void gen_top(){
+
+  printf(".intel_syntax noprefix\n");
+  printf(".global main\n");
+  
   for(int i=0; i<nodes->len; i++){
     if(((Node*)nodes->data[i])->ty == ND_DEC_FUNC){
       // prologue

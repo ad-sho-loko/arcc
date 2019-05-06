@@ -1,4 +1,3 @@
-
 #include <ctype.h>
 #include <string.h>
 #include <stdbool.h>
@@ -17,6 +16,22 @@ static Token *new_token(int ty, char* input, int val){
   t->ty = ty;
   t->input = input;
   t->val = val;
+  return t;
+}
+
+static Token *new_token_op(int ty, char* input){
+  Token *t = malloc(sizeof(Token));
+  t->ty = ty;
+  t->input = input;
+  t->val = 0;
+  return t;
+}
+
+static Token *new_token_reserved(int ty, char* input){
+  Token *t = malloc(sizeof(Token));
+  t->ty = ty;
+  t->input = input;
+  t->val = 0;
   return t;
 }
 
@@ -52,61 +67,61 @@ Vector *tokenize(char *p){
     }
 
     if(*p == '=' && *(p+1) == '='){
-      push_back(tokens, new_token(TK_EQL, "==", 0));
+      push_back(tokens, new_token_op(TK_EQL, "=="));
       p+=2;
       continue;
     }
 
     if(*p == '!' && *(p+1) == '='){
-      push_back(tokens, new_token(TK_NEQ, "!=", 0));
+      push_back(tokens, new_token_op(TK_NEQ, "!="));
       p+=2;
       continue;      
     }
 
     if(*p == '<' && *(p+1) == '='){
-      push_back(tokens, new_token(TK_LE, "<=", 0));
+      push_back(tokens, new_token_op(TK_LE, "<="));
       p+=2;
       continue;      
     }
 
     if(*p == '>' && *(p+1) == '='){
-      push_back(tokens, new_token(TK_GE, ">=", 0));
+      push_back(tokens, new_token_op(TK_GE, ">="));
       p+=2;
       continue;      
     }
 
     if(*p == '|' && *(p+1) == '|'){
-      push_back(tokens, new_token(TK_OR, "||", 0));
+      push_back(tokens, new_token_op(TK_OR, "||"));
       p+=2;
       continue;
     }
 
     if(*p == '&' && *(p+1) == '&'){
-      push_back(tokens, new_token(TK_AND, "&&", 0));
+      push_back(tokens, new_token_op(TK_AND, "&&"));
       p+=2;
       continue;
     }
 
     if(*p == '+' && *(p+1) == '+'){
-      push_back(tokens, new_token(TK_INC, "++", 0));
+      push_back(tokens, new_token_op(TK_INC, "++"));
       p+=2;
       continue;
     }
 
     if(*p == '+' && *(p+1) == '+'){
-      push_back(tokens, new_token(TK_DEC, "++", 0));
+      push_back(tokens, new_token_op(TK_DEC, "++"));
       p+=2;
       continue;
     }
 
     if(*p == '+' && *(p+1) == '='){
-      push_back(tokens, new_token(TK_PLUS_EQ, "+=", 0));
+      push_back(tokens, new_token_op(TK_PLUS_EQ, "+="));
       p+=2;
       continue;
     }
 
     if(*p == '-' && *(p+1) == '='){
-      push_back(tokens, new_token(TK_MINUS_EQ, "-=", 0));
+      push_back(tokens, new_token_op(TK_MINUS_EQ, "-="));
       p+=2;
       continue;
     }
@@ -118,12 +133,10 @@ Vector *tokenize(char *p){
     }
 
     if(*p == '/' && *(p+1) == '='){
-      push_back(tokens, new_token(TK_DIV_EQ, "/=", 0));
+      push_back(tokens, new_token_op(TK_DIV_EQ, "/="));
       p+=2;
       continue;
-    }
-
-    
+    }    
     
     if(*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' || *p == ')' || *p == '<' || *p == '>' || *p == ';' || *p == '=' || *p == '{' || *p == '}' || *p == ','){
       push_back(tokens, new_token(*p, p, 0));
@@ -137,37 +150,37 @@ Vector *tokenize(char *p){
     }
 
     if(strncmp(p, "return", 6) == 0 && !is_alnum(p[6])){
-      push_back(tokens, new_token(TK_RETURN, p, 0));
+      push_back(tokens, new_token_reserved(TK_RETURN, p));
       p+=6;
       continue;
     }
 
     if(strncmp(p, "if", 2) == 0 && !is_alnum(p[2])){
-      push_back(tokens, new_token(TK_IF, p, 0));
+      push_back(tokens, new_token_reserved(TK_IF, p));
       p+=2;
       continue;
     }
 
     if(strncmp(p, "else if", 7) == 0 && !is_alnum(p[7])){
-      push_back(tokens, new_token(TK_ELSE_IF, p, 0));
+      push_back(tokens, new_token_reserved(TK_ELSE_IF, p));
       p+=7;
       continue;
     }
     
     if(strncmp(p, "else", 4) == 0 && !is_alnum(p[4])){
-      push_back(tokens, new_token(TK_ELSE, p, 0));
+      push_back(tokens, new_token_reserved(TK_ELSE, p));
       p+=4;
       continue;
     }
 
     if(strncmp(p, "while", 5) == 0 && !is_alnum(p[5])){
-      push_back(tokens, new_token(TK_WHILE, p, 0));
+      push_back(tokens, new_token_reserved(TK_WHILE, p));
       p+=5;
       continue;
     }    
 
     if(strncmp(p, "for", 3) == 0 && !is_alnum(p[3])){
-      push_back(tokens, new_token(TK_FOR, p, 0));
+      push_back(tokens, new_token_reserved(TK_FOR, p));
       p+=3;
       continue;
     }    

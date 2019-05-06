@@ -72,7 +72,7 @@ Node* term(){
   }
 
   if(tkn->ty == TK_IDENT){
-    // call function
+    // WHEN calling function
     if(consume('(')){
       Node *n = new_node_func(tkn->name);
       n->items = new_vector();
@@ -84,7 +84,7 @@ Node* term(){
       return n;
     }
 
-    // variable
+    // WHEN variable
     return new_node_ident(tkn->name);
   }
   error("Line%d in parse.c : 数値でも開きカッコでもないトークンです: %s", __LINE__ ,((Token*)(tokens->data[pos]))->input);
@@ -276,7 +276,7 @@ Node *stmt(){
   return n;
 }
 
-void program(){
+void func_body(){
   while(((Token*)tokens->data[pos])->ty != '}'){
     push_back(nodes, stmt());
   }
@@ -290,7 +290,7 @@ void toplevel(){
   while(((Token*)tokens->data[pos])->ty != TK_EOF){
     Token *t = ((Token*)tokens->data[pos]);
 
-    // func-name
+    // function-name
     if(!consume(TK_IDENT)){
       error("Line%d in parse.c : 関数の宣言から始める必要があります", __LINE__);
     }
@@ -298,30 +298,26 @@ void toplevel(){
     Node *n = new_node_declare_func(func_name);
     push_back(nodes, n);
     
-    // set environment.
+    // init. (set a local environment)
     reset_local_env();
     map_putm(global_env, t->name, local_env);
     
     // args.
-    int arg_len = 0;
     expect('(');
     while(((Token*)tokens->data[pos])->ty != ')'){
       Token *now = (Token*)tokens->data[pos];
       push_back(nodes, new_node_ident(now->name));
       expect(TK_IDENT);
       consume(',');
-      arg_len++;
+      // refine.
+      n->arg_num++;
     }
     expect(')');
 
-    // todo :refactor
-    n->arg_num = arg_len;
-    
+    // function-body.
     expect('{');
-    program();
+    func_body();
     expect('}');    
     push_back(nodes, new_node(ND_FUNC_END, NULL, NULL));
   }
 }
-
-
