@@ -197,6 +197,11 @@ Vector *tokenize(char *p){
       continue;
     }    
 
+    if(strncmp(p, "int", 3) == 0 && !is_alnum(p[3])){
+      push_back(tokens, new_token_reserved(TK_INT, p));
+      p+=3;
+      continue;
+    }    
     
     if(is_valid_leading(*p)){
       int len = 1;

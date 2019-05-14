@@ -52,7 +52,7 @@ int consume(int ty){
 void expect(int ty){
   int actual = ((Token*)(tokens->data[pos]))->ty;
   if(actual != ty){
-    error("Line%d in parse.c : expected=%c, but accutal=%c in parse.c", __LINE__, ty, actual);
+    error("Line.%d in parse.c : expected=%c  but accutal=%c in parse.c", __LINE__, ty, actual);
   }
   pos++;
 }
@@ -66,28 +66,50 @@ Node* term(){
     return n;
   }
 
-  Token *tkn = ((Token*)(tokens->data[pos++]));
+  Token *tkn = ((Token*)(tokens->data[pos]));
+  pos++;
+
   if(tkn->ty == TK_NUM){
     return new_node_num(tkn->val);
+  }
+
+  // int a;
+  // int a = 1;
+  // int a, b;
+  // int a = 1, b;
+  // int a = 1, b = 2;
+  if(tkn->ty == TK_INT){
+    if(((Token*)(tokens->data[pos]))->ty != TK_IDENT){
+      error("Line.%d 型宣言のあとは変数でなければいけません : parse.c ", __LINE__);
+    }
+
+    Token *t = ((Token*)(tokens->data[pos]));
+    Node *n = new_node_ident(t->name);
+    pos++;
+    return n;
   }
 
   if(tkn->ty == TK_IDENT){
     // WHEN calling function
     if(consume('(')){
-      Node *n = new_node_func(tkn->name);
-      n->items = new_vector();
-      while(((Token*)(tokens->data[pos]))->ty != ')'){
-        push_back(n->items, equality());
-        consume(',');
-      }
-      expect(')');
-      return n;
+     Node *n = new_node_func(tkn->name);
+     n->items = new_vector();
+     while(((Token*)(tokens->data[pos]))->ty != ')'){
+       push_back(n->items, equality());
+       consume(',');
+     }
+     expect(')');
+     return n;
     }
 
-    // WHEN variable
+    // WHEN variable : 一度定義されていないとエラーになる.
+    if(map_geti(local_env, tkn->name) == (int)NULL){
+      error("Line.%d in parse.c : 定義されていない変数です : %s", __LINE__, tkn->name);
+    }
     return new_node_ident(tkn->name);
   }
-  error("Line%d in parse.c : 数値でも開きカッコでもないトークンです: %s", __LINE__ ,((Token*)(tokens->data[pos]))->input);
+  
+  error("Line.%d in parse.c : 数値でも開きカッコでもないトークンです: %s", __LINE__  ,((Token*)(tokens->data[pos]))->input);
   exit(1);
 }
 
@@ -315,7 +337,7 @@ void toplevel(){
       push_back(nodes, new_node_ident(now->name));
       expect(TK_IDENT);
       consume(',');
-      // refine.
+      // todo : refine.
       n->arg_num++;
     }
     expect(')');

@@ -24,6 +24,7 @@ enum{
   TK_ELSE_IF,
   TK_BREAK,
   TK_CONTINUE,
+  TK_INT
 };
 
 enum{
@@ -48,7 +49,8 @@ enum{
   ND_DEC_FUNC,
   ND_FUNC_END,
   ND_BREAK,
-  ND_CONTINUE
+  ND_CONTINUE,
+  ND_INT
 };
 
 
