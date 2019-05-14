@@ -339,6 +339,9 @@ void toplevel(){
     // args.
     expect('(');
     while(((Token*)tokens->data[pos])->ty != ')'){
+      if(!consume(TK_INT)){
+        error("Line.%d in parse.c : 仮引数は型から始める必要があります", __LINE__);
+      }
       Token *now = (Token*)tokens->data[pos];
       push_back(nodes, new_node_ident(now->name));
       expect(TK_IDENT);
