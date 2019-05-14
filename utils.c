@@ -22,8 +22,11 @@ int do_align(int x, int align){
   return (x + align - 1) & ~(align - 1);
 }
 
-void printd(char *s){
-  fprintf(stderr, s);
+void printd(char *fmt, ...){
+  va_list ap;
+  va_start(ap, fmt);
+  vfprintf(stderr, fmt, ap);
+  fprintf(stderr, "\n");
 }
 
 // vector
@@ -85,6 +88,7 @@ void debug_vector_nodes(Vector *v){
   }
 }
 
+// map
 Map* new_map(){
   Map* m = malloc(sizeof(Map));
   m->keys = new_vector();
@@ -110,7 +114,6 @@ void map_put(Map *m, char *key, void *value) {
   push_back(m->values, value);
 }
 
-
 void map_puti(Map *m, char *key, int value){
   map_put(m, key, (void*)(intptr_t)value);
 }
@@ -127,16 +130,19 @@ Map *map_getm(Map *m, char *key){
   return map_get(m, key);
 }
 
-
 int map_len(Map *m){
   return m->keys->len;
 }
 
+static char* stringfy_ascii(char code){
+  char *s = malloc(sizeof(char)*2);
+  s[0] = code; s[1] = '\0';
+  return s;
+}
+
 char* stringfy_token(int tkn_kind){
   if(tkn_kind <= 255) {
-    char *s = malloc(sizeof(char)*2);
-    s[0] = (char)tkn_kind; s[1] = '\0';
-    return s;
+    return stringfy_ascii(tkn_kind);
   }
 
   switch(tkn_kind){
@@ -170,11 +176,9 @@ char* stringfy_token(int tkn_kind){
 
 char* stringfy_node(int node_kind){
   if(node_kind <= 255) {
-    char *s = malloc(sizeof(char)*2);
-    s[0] = (char)node_kind; s[1] = '\0';
-    return s;
+    return stringfy_ascii(node_kind);
   }
-
+  
   switch(node_kind){
   case 256: return "ND_NUM";
   case 257: return "ND_EQL";

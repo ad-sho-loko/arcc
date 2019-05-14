@@ -116,6 +116,7 @@ Node* term(){
 Node* unary(){
   if(consume(TK_INC)){
     // ++a -> a += 1; a;
+    // a++ -> a; a+= 1;
   }else if(consume('+')){
     // +2 -> 2
     return term();
@@ -310,8 +311,9 @@ void func_body(){
   }
 }
 
-void reset_local_env(){
+void init_local_env(char *func_name){
   local_env = new_map();
+  map_putm(global_env, func_name, local_env);
 }
 
 void toplevel(){
@@ -327,8 +329,7 @@ void toplevel(){
     push_back(nodes, n);
     
     // init. (set a local environment)
-    reset_local_env();
-    map_putm(global_env, t->name, local_env);
+    init_local_env(t->name);
     
     // args.
     expect('(');

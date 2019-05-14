@@ -54,7 +54,6 @@ enum{
 };
 
 
-
 // A variable-length array.
 typedef struct {
   void **data;
@@ -109,7 +108,7 @@ extern Map *global_env;
 
 void error(char* fmt, ...);
 void out(char* code);
-void printd(char *s);
+void printd(char* fmt, ...);
 int do_align(int x, int align);
 void debug_vector_token(Vector *v);
 void debug_vector_nodes(Vector *v);

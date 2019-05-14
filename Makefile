@@ -3,7 +3,7 @@ SRCS=$(wildcard *.c)
 OBJS=$(SRCS:.c=.o)
 
 arcc: $(OBJS)
-	$(CC) -o arcc $(OBJS) $(LDFLAGS)
+	$(CC) -o arcc $(OBJS) ./test/foo.o $(LDFLAGS)
 
 $(OBJS): arcc.h
 

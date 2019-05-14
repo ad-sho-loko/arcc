@@ -6,7 +6,7 @@ try(){
 
     ## build
     ./arcc "$input" > tmp.s
-    gcc -o tmp tmp.s foo.o
+    gcc -o tmp tmp.s ./test/foo.o
     ./tmp
 
     actual="$?"
