@@ -318,12 +318,17 @@ void init_local_env(char *func_name){
 
 void toplevel(){
   while(((Token*)tokens->data[pos])->ty != TK_EOF){
-    Token *t = ((Token*)tokens->data[pos]);
+    // return-type
+    if(!consume(TK_INT)){
+      error("Line.%d in parse.c : 関数の宣言は型から始める必要があります", __LINE__);
+    }
 
+    Token *t = ((Token*)tokens->data[pos]);
     // function-name
     if(!consume(TK_IDENT)){
-      error("Line%d in parse.c : 関数の宣言から始める必要があります", __LINE__);
+      error("Line.%d in parse.c : 関数の宣言から始める必要があります", __LINE__);
     }
+    
     char *func_name = t->name;
     Node *n = new_node_declare_func(func_name);
     push_back(nodes, n);
