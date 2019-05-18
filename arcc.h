@@ -24,7 +24,10 @@ enum{
   TK_ELSE_IF,
   TK_BREAK,
   TK_CONTINUE,
-  TK_INT
+  TK_INT,
+  TK_PTR,
+  TK_ADR,
+  TK_TYPE
 };
 
 enum{
@@ -50,9 +53,16 @@ enum{
   ND_FUNC_END,
   ND_BREAK,
   ND_CONTINUE,
-  ND_INT
+  ND_INT,
+  ND_PTR,
+  ND_ADR,
+  ND_TYPE,
 };
 
+typedef struct Type{
+  enum {INT, PTR} ty;
+  struct Type *ptr_of;
+}Type;
 
 // A variable-length array.
 typedef struct {
@@ -66,6 +76,7 @@ typedef struct{
   int val;
   char *name;
   char *input;
+  Type *type; // for pointer.
 } Token;
 
 typedef struct Node{

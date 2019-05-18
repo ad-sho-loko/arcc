@@ -154,6 +154,26 @@ void gen(Node *node){
     return;
   }
 
+  // &x
+  if(node->ty == ND_ADR){
+    int offset = map_geti(now_env, node->name);
+    out("mov rax, rbp");
+    printf("  sub rax, %d\n", offset);
+    out("push rax");
+    return;
+  }
+
+  // *x
+  if(node->ty == ND_PTR){
+    int offset = map_geti(now_env, node->name);
+    out("mov rax, rbp");
+    printf("  sub rax, %d\n", offset);
+    out("mov rax, [rax]");
+    out("mov rax, [rax]");
+    out("push rax");
+    return;
+  }
+  
   if(node->ty == '='){
     gen_lval(node->lhs);
     gen(node->rhs);

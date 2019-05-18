@@ -170,6 +170,9 @@ char* stringfy_token(int tkn_kind){
   case 277: return "TK_BREAK";
   case 278: return "TK_CONTINUE";
   case 279: return "TK_INT";
+  case 280: return "TK_PTR";
+  case 281: return "TK_ADR";
+  case 282: return "TK_TYPE";
   default: return "Unknown";
   }
 }
@@ -203,6 +206,9 @@ char* stringfy_node(int node_kind){
   case 276: return "ND_BREAK";
   case 277: return "ND_CONTINUE";
   case 278: return "ND_INT";
+  case 279: return "ND_PTR";
+  case 280: return "ND_ADR";
+  case 281: return "ND_TYPE";
   default: return "Unknown";
   }
 }

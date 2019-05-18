@@ -47,6 +47,17 @@ char *strndup(const char *s, size_t n) {
     return p;
 }
 
+static Token *new_token_type(int ty, int type, char* input){
+  Token *t = malloc(sizeof(Token));
+  t->ty = ty;
+  t->input = input;
+  t->val = 0;
+  t->type = malloc(sizeof(Type));
+  t->type->ty = type;
+  return t;
+}
+
+
 static Token *new_token_ident(char *ident, char *input){
   Token *t = malloc(sizeof(Token));
   t->ty = TK_IDENT;
@@ -54,6 +65,34 @@ static Token *new_token_ident(char *ident, char *input){
   t->val = 0;
   t->name = ident;
   return t;
+}
+
+static Token *new_token_ptr(){
+  Token *token = malloc(sizeof(Token));
+  Type *type = malloc(sizeof(Type));
+  token->ty = TK_TYPE;
+  token->type = type;
+  type->ty = TK_PTR;
+  type->ptr_of = malloc(sizeof(Type));
+  type->ptr_of->ty = TK_INT;
+  return token;
+}
+
+static Vector *pointernized(Vector* tokens){
+  Vector* v = new_vector();
+  for(int i=0; i<tokens->len; i++){
+    if( ((Token*)(tokens->data[i]))->ty == TK_TYPE && ( i+1 < tokens->len && ((Token*)(tokens->data[i+1]))->ty == TK_PTR) ){
+      push_back(v, new_token_ptr());
+      i++;
+      // TODO 複数ポインタ対応
+      // t->type->ptr_of->ptr_of
+      // loop-pointer
+      
+    }else{
+      push_back(v, tokens->data[i]);
+    }
+  }
+  return v;
 }
 
 Vector *tokenize(char *p){
@@ -137,6 +176,21 @@ Vector *tokenize(char *p){
       p+=2;
       continue;
     }    
+
+    // pointer
+    if(*p == '*' && (is_valid_leading(*(p+1)) || *(p+1) == '*')){
+      push_back(tokens, new_token(TK_PTR, "*", 0));
+      p+=1;
+      continue;
+    }
+
+    // reference
+    if(*p == '&' && is_valid_leading(*(p+1))){
+      push_back(tokens, new_token(TK_ADR, "&", 0));
+      p+=1;
+      continue;
+    }
+    
     
     if(*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' || *p == ')' || *p == '<' || *p == '>' || *p == ';' || *p == '=' || *p == '{' || *p == '}' || *p == ','){
       push_back(tokens, new_token(*p, p, 0));
@@ -198,7 +252,7 @@ Vector *tokenize(char *p){
     }    
 
     if(strncmp(p, "int", 3) == 0 && !is_alnum(p[3])){
-      push_back(tokens, new_token_reserved(TK_INT, p));
+      push_back(tokens, new_token_type(TK_TYPE, TK_INT, p));
       p+=3;
       continue;
     }    
@@ -217,5 +271,5 @@ Vector *tokenize(char *p){
     error("Line.%d in token.c : cannot tokenize %s", __LINE__, p);
   }
   push_back(tokens, new_token(TK_EOF, p, 0));
-  return tokens;
+  return pointernized(tokens);
 }

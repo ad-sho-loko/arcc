@@ -102,4 +102,5 @@ try 5 'int main(){ int i; i = 0; for(; i < 10; i+=1){if(i == 5) break; } return 
 try 5 'int main(){ int i; i = 0; while(i < 10){if(i == 5) break; i+=1;} return i;}'
 try 9 'int main(){ int a; int i; a = 0; for(i=0; i<10; i+=1){if(i == 5) {continue;} a+=1; } return a; }'
 try 9 'int main(){ int a; int i; i = 0; a = 0; while(i<10){if(i == 5) {i+=1; continue;} i+=1; a+=1; } return a; }'
+try 3 'int main(){int x; x = 3; int *y; y = &x; return *y;}'
 echo ok

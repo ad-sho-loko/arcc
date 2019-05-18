@@ -73,12 +73,13 @@ Node* term(){
     return new_node_num(tkn->val);
   }
 
-  // int a;
-  // int a = 1;
-  // int a, b;
-  // int a = 1, b;
-  // int a = 1, b = 2;
-  if(tkn->ty == TK_INT){
+  // The progress of implemention.
+  // [o] int a;
+  // [x] int a = 1;
+  // [x] int a, b;
+  // [x] int a = 1, b;
+  // [x] int a = 1, b = 2;
+  if(tkn->ty == TK_TYPE){
     if(((Token*)(tokens->data[pos]))->ty != TK_IDENT){
       error("Line.%d 型宣言のあとは変数でなければいけません : parse.c ", __LINE__);
     }
@@ -89,6 +90,41 @@ Node* term(){
     return n;
   }
 
+  if(tkn->ty == TK_ADR){
+    Token *t = ((Token*)(tokens->data[pos]));
+
+    if(t->ty != TK_IDENT){
+      error("アンパサンドのあとは必ず変数です");
+    }
+
+    // 一度定義されていないとエラーになる.
+    if(map_geti(local_env, t->name) == (int)NULL){
+      error("Line.%d in parse.c : 定義されていない変数です : %s", __LINE__, t->name);
+    }
+    pos++;
+    Node *n = new_node(ND_ADR, NULL, NULL);
+    n->name = t->name;
+    return n;
+  }
+
+  if(tkn->ty == TK_PTR){
+    Token *t = ((Token*)(tokens->data[pos]));
+
+    if(t->ty != TK_IDENT){
+      error("ポインタのあとは必ず変数です");
+    }
+
+    // 一度定義されていないとエラーになる.
+    if(map_geti(local_env, t->name) == (int)NULL){
+      error("Line.%d in parse.c : 定義されていない変数です : %s", __LINE__, t->name);
+    }
+
+    pos++;
+    Node *n = new_node(ND_PTR, NULL, NULL);
+    n->name = t->name;
+    return n;
+  }
+  
   if(tkn->ty == TK_IDENT){
     // WHEN calling function
     if(consume('(')){
@@ -319,7 +355,7 @@ void init_local_env(char *func_name){
 void toplevel(){
   while(((Token*)tokens->data[pos])->ty != TK_EOF){
     // return-type
-    if(!consume(TK_INT)){
+    if(!consume(TK_TYPE)){
       error("Line.%d in parse.c : 関数の宣言は型から始める必要があります", __LINE__);
     }
 
@@ -339,7 +375,7 @@ void toplevel(){
     // args.
     expect('(');
     while(((Token*)tokens->data[pos])->ty != ')'){
-      if(!consume(TK_INT)){
+      if(!consume(TK_TYPE)){
         error("Line.%d in parse.c : 仮引数は型から始める必要があります", __LINE__);
       }
       Token *now = (Token*)tokens->data[pos];
