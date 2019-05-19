@@ -64,6 +64,36 @@ void expect(int ty){
   pos++;
 }
 
+Node* ident(Token *tkn){
+  // WHEN calling function
+  if(consume('(')){
+    Node *n = new_node_func(tkn->name);
+    n->items = new_vector();
+    while(((Token*)(tokens->data[pos]))->ty != ')'){
+      push_back(n->items, equality());
+      consume(',');
+    }
+    expect(')');
+    return n;
+  }
+  
+  // WHEN variable : 一度定義されていないとエラーになる.
+  if(map_geti(local_env, tkn->name) == (int)NULL){
+    error("Line.%d in parse.c : 定義されていない変数です : %s", __LINE__, tkn->name);
+  }
+  
+  Node *n = new_node_ident(tkn->name);
+  // 優先度TOPの演算子の処理
+  if(consume(TK_INC)){
+    // a++ -> a; a+=1;
+    return new_node(ND_INC, n, NULL);
+  }else if(consume(TK_DEC)){
+    // a-- -> a; a-=1
+    return new_node(ND_DEC, n, NULL);
+  }
+  return n;
+}
+
 Node* term(){
   if(consume('(')){
     Node *n = assign();
@@ -133,23 +163,7 @@ Node* term(){
   }
   
   if(tkn->ty == TK_IDENT){
-    // WHEN calling function
-    if(consume('(')){
-     Node *n = new_node_func(tkn->name);
-     n->items = new_vector();
-     while(((Token*)(tokens->data[pos]))->ty != ')'){
-       push_back(n->items, equality());
-       consume(',');
-     }
-     expect(')');
-     return n;
-    }
-
-    // WHEN variable : 一度定義されていないとエラーになる.
-    if(map_geti(local_env, tkn->name) == (int)NULL){
-      error("Line.%d in parse.c : 定義されていない変数です : %s", __LINE__, tkn->name);
-    }
-    return new_node_ident(tkn->name);
+    return ident(tkn);
   }
   
   error("Line.%d in parse.c : 数値でも開きカッコでもないトークンです: %s", __LINE__  ,((Token*)(tokens->data[pos]))->input);

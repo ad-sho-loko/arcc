@@ -192,6 +192,28 @@ void gen(Node *node){
     return;
   }
 
+  if(node->ty == ND_INC){
+    gen_lval(node->lhs);
+    out("pop rax");
+    out("push [rax]");
+    out("mov rdi, rax");
+    out("mov rax, [rax]");
+    out("add rax, 1");
+    out("mov [rdi], rax");
+    return;
+  }
+
+  if(node->ty == ND_DEC){
+    gen_lval(node->lhs);
+    out("pop rax");
+    out("push [rax]");
+    out("mov rdi, rax");
+    out("mov rax, [rax]");
+    out("sub rax, 1");
+    out("mov [rdi], rax");
+    return;
+  }
+  
   if(node->ty == ND_RETURN){
     gen(node->lhs);
     out("pop rax");

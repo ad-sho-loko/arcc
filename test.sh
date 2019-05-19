@@ -104,6 +104,13 @@ try 9 'int main(){ int a; int i; a = 0; for(i=0; i<10; i+=1){if(i == 5) {continu
 try 9 'int main(){ int a; int i; i = 0; a = 0; while(i<10){if(i == 5) {i+=1; continue;} i+=1; a+=1; } return a; }'
 try 3 'int main(){int x; x = 3; int *y; y = &x; return *y;}'
 # refactoring time.
-try 6 'int main(){int x; x = 5; ++x; return x;}'
-try 4 'int main(){int x; x = 5; --x; return x;}'
+try 6 'int main(){int a; a = 5; ++a; return a;}'
+try 4 'int main(){int a; a = 5; --a; return a;}'
+try 6 'int main(){int a; a = 5; a++; return a;}'
+try 5 'int main(){int a; a = 5; return a++;}'
+try 5 'int main(){int a; int b; a = 5; b = a++; return b;}'
+try 6 'int main(){int a; int b; a = 5; b = a++; return a;}'
+try 5 'int main(){int a; a = 5; return a--;}'
+try 5 'int main(){int a; int b; a = 5; b = a--; return b;}'
+try 4 'int main(){int a; int b; a = 5; b = a--; return a;}'
 echo ok
