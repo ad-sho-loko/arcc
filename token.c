@@ -147,8 +147,8 @@ Vector *tokenize(char *p){
       continue;
     }
 
-    if(*p == '+' && *(p+1) == '+'){
-      push_back(tokens, new_token_op(TK_DEC, "++"));
+    if(*p == '-' && *(p+1) == '-'){
+      push_back(tokens, new_token_op(TK_DEC, "--"));
       p+=2;
       continue;
     }

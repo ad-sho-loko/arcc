@@ -42,6 +42,13 @@ Node *new_node_declare_func(char *name){
   return n;
 }
 
+void assume(int ty){
+  int actual = ((Token*)(tokens->data[pos]))->ty;
+  if(actual != ty){
+    error("Line.%d in parse.c : expected=%c but accutal=%c %d  in parse.c", __LINE__, ty, actual, actual);
+  }
+}
+
 int consume(int ty){
   if(((Token*)tokens->data[pos])->ty != ty)
     return 0;
@@ -52,7 +59,7 @@ int consume(int ty){
 void expect(int ty){
   int actual = ((Token*)(tokens->data[pos]))->ty;
   if(actual != ty){
-    error("Line.%d in parse.c : expected=%c  but accutal=%c in parse.c", __LINE__, ty, actual);
+    error("Line.%d in parse.c : expected=%c but accutal=%c %d  in parse.c", __LINE__, ty, actual, actual);
   }
   pos++;
 }
@@ -151,8 +158,16 @@ Node* term(){
 
 Node* unary(){
   if(consume(TK_INC)){
-    // ++a -> a += 1; a;
-    // a++ -> a; a+= 1;
+    // [HERE] ++a -> a = a + 1;
+    // [NOT] a++;
+    assume(TK_IDENT);
+    Node *ident = term();
+    return new_node('=', ident, new_node('+', ident, new_node_num(1)));
+  }else if(consume(TK_DEC)){
+    // [HERE] --a -> a = a - 1;
+    assume(TK_IDENT);
+    Node *ident = term();
+    return new_node('=', ident, new_node('-', ident, new_node_num(1)));
   }else if(consume('+')){
     // +2 -> 2
     return term();
