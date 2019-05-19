@@ -30,7 +30,10 @@ enum{
   TK_TYPE,
   TK_REM_EQ,
   TK_LSHIFT,
-  TK_RSHIFT
+  TK_RSHIFT,
+  TK_LSHIFT_EQ,
+  TK_RSHIFT_EQ
+
 };
 
 enum{

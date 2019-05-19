@@ -118,4 +118,6 @@ try 2 'int main(){int a; a = 12 % 10; return 2;}'
 try 2 'int main(){int a; a = 12; a%=10; return a;}'
 try 16 'int main(){int a; a = 2; return a << 3;}'
 try 2 'int main(){int a; a = 16; return a >> 3;}'
+try 16 'int main(){int a; a = 2; a <<= 3; return a;}'
+try 2 'int main(){int a; a = 16; a >>= 3; return a;}'
 echo ok

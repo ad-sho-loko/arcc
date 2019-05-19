@@ -293,6 +293,10 @@ Node *assign(){
       n = new_node('=', n, new_node('/', n, assign()));
     }else if(consume(TK_REM_EQ)){
       n = new_node('=', n, new_node('%', n, assign()));
+    }else if(consume(TK_LSHIFT_EQ)){
+      n = new_node('=', n, new_node(ND_LSHIFT, n, assign()));
+    }else if(consume(TK_RSHIFT_EQ)){
+      n = new_node('=', n, new_node(ND_RSHIFT, n, assign()));
     }else{
       return n;
     }

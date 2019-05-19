@@ -129,6 +129,19 @@ Vector *tokenize(char *p){
       continue;      
     }
 
+    if(*p == '<' && *(p+1) == '<' && *(p+2) == '='){
+      push_back(tokens, new_token_op(TK_LSHIFT_EQ, "<<="));
+      p+=3;
+      continue;
+    }    
+
+    if(*p == '>' && *(p+1) == '>' && *(p+2) == '='){
+      push_back(tokens, new_token_op(TK_RSHIFT_EQ, "<<="));
+      p+=3;
+      continue;
+    }    
+
+
     if(*p == '>' && *(p+1) == '>'){
       push_back(tokens, new_token_op(TK_RSHIFT, ">>"));
       p+=2;

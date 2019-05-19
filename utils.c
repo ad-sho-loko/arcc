@@ -176,6 +176,8 @@ char* stringfy_token(int tkn_kind){
   case 283: return "TK_REM_EQ";
   case 284: return "ND_LSHIFT";
   case 285: return "ND_RSHIFT";
+  case 286: return "ND_LSHIFT_EQ";
+  case 287: return "ND_RSHIFT_EQ";
   default: return "Unknown";
   }
 }
