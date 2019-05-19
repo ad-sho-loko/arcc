@@ -220,17 +220,30 @@ Node *add(){
   }
 }
 
-Node* relational(){
+Node* shift(){
   Node *n = add();
   for(;;){
+    if(consume(TK_LSHIFT)){
+      n = new_node(ND_LSHIFT, n, add());
+    }else if(consume(TK_RSHIFT)){
+      n = new_node(ND_RSHIFT, n, add());
+    }else{
+      return n;
+    }
+  }
+}
+
+Node* relational(){
+  Node *n = shift();
+  for(;;){
     if(consume('<')){
-      n = new_node('<', n, add());
+      n = new_node('<', n, shift());
     }else if(consume(TK_LE)){
-      n = new_node(ND_LE, n, add());
+      n = new_node(ND_LE, n, shift());
     }else if(consume('>')){
-      n = new_node(ND_LE, add(), n);
+      n = new_node(ND_LE, shift(), n);
     }else if(consume(TK_GE)){
-      n = new_node(ND_LE, add(), n);
+      n = new_node(ND_LE, shift(), n);
     }else{
       return n;      
     }

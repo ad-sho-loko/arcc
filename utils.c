@@ -174,6 +174,8 @@ char* stringfy_token(int tkn_kind){
   case 281: return "TK_ADR";
   case 282: return "TK_TYPE";
   case 283: return "TK_REM_EQ";
+  case 284: return "ND_LSHIFT";
+  case 285: return "ND_RSHIFT";
   default: return "Unknown";
   }
 }
@@ -210,6 +212,8 @@ char* stringfy_node(int node_kind){
   case 279: return "ND_PTR";
   case 280: return "ND_ADR";
   case 281: return "ND_TYPE";
+  case 282: return "ND_LSHIFT";
+  case 283: return "ND_RSHIFT";
   default: return "Unknown";
   }
 }

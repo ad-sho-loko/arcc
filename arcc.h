@@ -28,7 +28,9 @@ enum{
   TK_PTR,
   TK_ADR,
   TK_TYPE,
-  TK_REM_EQ
+  TK_REM_EQ,
+  TK_LSHIFT,
+  TK_RSHIFT
 };
 
 enum{
@@ -58,6 +60,8 @@ enum{
   ND_PTR,
   ND_ADR,
   ND_TYPE,
+  ND_LSHIFT,
+  ND_RSHIFT
 };
 
 typedef struct Type{

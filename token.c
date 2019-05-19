@@ -3,7 +3,7 @@
 #include <stdbool.h>
 #include "arcc.h"
 
-static bool is_valid_leading(char ch){
+static bool is_var_leading(char ch){
   return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || (ch == '_');  
 }
 
@@ -129,6 +129,18 @@ Vector *tokenize(char *p){
       continue;      
     }
 
+    if(*p == '>' && *(p+1) == '>'){
+      push_back(tokens, new_token_op(TK_RSHIFT, ">>"));
+      p+=2;
+      continue;      
+    }
+
+    if(*p == '<' && *(p+1) == '<'){
+      push_back(tokens, new_token_op(TK_LSHIFT, "<<"));
+      p+=2;
+      continue;      
+    }
+    
     if(*p == '|' && *(p+1) == '|'){
       push_back(tokens, new_token_op(TK_OR, "||"));
       p+=2;
@@ -184,14 +196,14 @@ Vector *tokenize(char *p){
     }    
     
     // pointer
-    if(*p == '*' && (is_valid_leading(*(p+1)) || *(p+1) == '*')){
+    if(*p == '*' && (is_var_leading(*(p+1)) || *(p+1) == '*')){
       push_back(tokens, new_token(TK_PTR, "*", 0));
       p+=1;
       continue;
     }
 
     // reference
-    if(*p == '&' && is_valid_leading(*(p+1))){
+    if(*p == '&' && is_var_leading(*(p+1))){
       push_back(tokens, new_token(TK_ADR, "&", 0));
       p+=1;
       continue;
@@ -263,7 +275,7 @@ Vector *tokenize(char *p){
       continue;
     }    
     
-    if(is_valid_leading(*p)){
+    if(is_var_leading(*p)){
       int len = 1;
       while(is_alnum(*(p+len))){
         len++;
