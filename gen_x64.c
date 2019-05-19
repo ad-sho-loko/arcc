@@ -259,6 +259,11 @@ void gen(Node *node){
     out("mov rdx, 0");
     out("div rdi");
     break;
+  case '%':
+    out("mov rdx, 0");
+    out("div rdi");
+    out("mov rax, rdx");
+    break;
   case ND_EQL:
     out("cmp rax, rdi");
     out("sete al");
@@ -280,9 +285,11 @@ void gen(Node *node){
     out("movzb rax, al");
     break;
   case ND_AND:
+    // 1 && 1
     out("and rax, rdi");
     break;
   case ND_OR:
+    // 1 || 1
     out("or rax, rdi");
     break;
   }

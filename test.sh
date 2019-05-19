@@ -113,4 +113,7 @@ try 6 'int main(){int a; int b; a = 5; b = a++; return a;}'
 try 5 'int main(){int a; a = 5; return a--;}'
 try 5 'int main(){int a; int b; a = 5; b = a--; return b;}'
 try 4 'int main(){int a; int b; a = 5; b = a--; return a;}'
+try 2 'int main(){return 12 % 5;}'
+try 2 'int main(){int a; a = 12 % 10; return 2;}'
+try 2 'int main(){int a; a = 12; a%=10; return a;}'
 echo ok

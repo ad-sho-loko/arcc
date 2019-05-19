@@ -173,6 +173,7 @@ char* stringfy_token(int tkn_kind){
   case 280: return "TK_PTR";
   case 281: return "TK_ADR";
   case 282: return "TK_TYPE";
+  case 283: return "TK_REM_EQ";
   default: return "Unknown";
   }
 }

@@ -199,6 +199,8 @@ Node* mul(){
       n = new_node('*', n, unary());
     }else if(consume('/')){
       n = new_node('/', n, unary());
+    }else if(consume('%')){
+      n = new_node('%', n, unary());
     }else{
       return n;
     }
@@ -276,6 +278,8 @@ Node *assign(){
       n = new_node('=', n, new_node('*', n, assign()));
     }else if(consume(TK_DIV_EQ)){
       n = new_node('=', n, new_node('/', n, assign()));
+    }else if(consume(TK_REM_EQ)){
+      n = new_node('=', n, new_node('%', n, assign()));
     }else{
       return n;
     }

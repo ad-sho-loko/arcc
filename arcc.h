@@ -27,7 +27,8 @@ enum{
   TK_INT,
   TK_PTR,
   TK_ADR,
-  TK_TYPE
+  TK_TYPE,
+  TK_REM_EQ
 };
 
 enum{

@@ -175,8 +175,14 @@ Vector *tokenize(char *p){
       push_back(tokens, new_token_op(TK_DIV_EQ, "/="));
       p+=2;
       continue;
+    }
+    
+    if(*p == '%' && *(p+1) == '='){
+      push_back(tokens, new_token_op(TK_REM_EQ, "%="));
+      p+=2;
+      continue;
     }    
-
+    
     // pointer
     if(*p == '*' && (is_valid_leading(*(p+1)) || *(p+1) == '*')){
       push_back(tokens, new_token(TK_PTR, "*", 0));
@@ -192,7 +198,7 @@ Vector *tokenize(char *p){
     }
     
     
-    if(*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' || *p == ')' || *p == '<' || *p == '>' || *p == ';' || *p == '=' || *p == '{' || *p == '}' || *p == ','){
+    if(*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' || *p == ')' || *p == '<' || *p == '>' || *p == ';' || *p == '=' || *p == '{' || *p == '}' || *p == ',' || *p == '%'){
       push_back(tokens, new_token(*p, p, 0));
       p++;
       continue;
