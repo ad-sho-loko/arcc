@@ -11,6 +11,13 @@ Node *new_node(int ty, Node *lhs, Node *rhs){
   return n;
 }
 
+Node *new_node_ptr(int cnt){
+  Node* n = malloc(sizeof(Node));
+  n->ty = ND_PTR;
+  n->cnt = cnt;
+  return n;
+}
+
 Node *new_node_num(int val){
   Node* n = malloc(sizeof(Node));
   n->ty = ND_NUM;
@@ -129,7 +136,6 @@ Node* term(){
 
   if(tkn->ty == TK_ADR){
     Token *t = ((Token*)(tokens->data[pos]));
-
     if(t->ty != TK_IDENT){
       error("アンパサンドのあとは必ず変数です");
     }
@@ -145,11 +151,15 @@ Node* term(){
   }
 
   if(tkn->ty == TK_PTR){
-    Token *t = ((Token*)(tokens->data[pos]));
 
-    if(t->ty != TK_IDENT){
-      error("ポインタのあとは必ず変数です");
+    int cnt = 1;
+    while(consume(TK_PTR)){
+      cnt++;
     }
+    
+    // ポインタのあとは必ず変数
+    assume(TK_IDENT);
+    Token *t = ((Token*)(tokens->data[pos]));
 
     // 一度定義されていないとエラーになる.
     if(map_geti(local_env, t->name) == (int)NULL){
@@ -157,7 +167,7 @@ Node* term(){
     }
 
     pos++;
-    Node *n = new_node(ND_PTR, NULL, NULL);
+    Node *n = new_node_ptr(cnt);
     n->name = t->name;
     return n;
   }

@@ -99,6 +99,7 @@ typedef struct Node{
   Vector *items;
   int val;
   int arg_num;
+  int cnt;  // for ***x
   char* name;
 } Node;
 

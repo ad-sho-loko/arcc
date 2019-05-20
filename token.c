@@ -67,26 +67,32 @@ static Token *new_token_ident(char *ident, char *input){
   return t;
 }
 
-static Token *new_token_ptr(){
-  Token *token = malloc(sizeof(Token));
-  Type *type = malloc(sizeof(Type));
-  token->ty = TK_TYPE;
-  token->type = type;
-  type->ty = TK_PTR;
-  type->ptr_of = malloc(sizeof(Type));
-  type->ptr_of->ty = TK_INT;
-  return token;
+static Type* new_ptr(){
+  Type *t = malloc(sizeof(Type));
+  t->ty = TK_PTR;
+  return t;
 }
 
 static Vector *pointernized(Vector* tokens){
   Vector* v = new_vector();
   for(int i=0; i<tokens->len; i++){
     if( ((Token*)(tokens->data[i]))->ty == TK_TYPE && ( i+1 < tokens->len && ((Token*)(tokens->data[i+1]))->ty == TK_PTR) ){
-      push_back(v, new_token_ptr());
+
+      // todo : refatoring
+      // 複数ポインタへの対応
+      Token *top = ((Token*)(tokens->data[i]));
+      Type *last_type = top->type;
+      top->type = new_ptr();
+      Type *now = top->type;
       i++;
-      // TODO 複数ポインタ対応
-      // t->type->ptr_of->ptr_of
-      // loop-pointer
+      while(((Token*)(tokens->data[i]))->ty == TK_PTR){
+        now->ptr_of = new_ptr();
+        now = now->ptr_of;
+        i++;
+      }
+      now->ptr_of = last_type;
+      push_back(v, top);
+      i--;
       
     }else{
       push_back(v, tokens->data[i]);
