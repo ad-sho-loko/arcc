@@ -66,6 +66,7 @@ void gen(Node *node){
     out("cmp rax, 1");
 
     int lcnt = next_label++;
+    printf("%s:\n", new_label("then", lcnt));
 
     if(node->els != NULL){
       printf("  jne %s\n", new_label("else", lcnt));
@@ -287,12 +288,36 @@ void gen(Node *node){
     out("movzb rax, al");
     break;
   case ND_AND:
-    // 1 && 1
-    out("and rax, rdi");
+    // todo : refactoring.
+    out("cmp rax, 0");
+    char *_false = new_label("and_false", next_label);
+    char *end = new_label("and_end", next_label);
+    next_label++;
+    printf("  je %s\n", _false);
+    out("cmp rdi, 0");
+    printf("  je %s\n", _false);
+    out("mov rax, 1"); // true
+    printf("  jmp %s\n", end);
+    printf("%s:\n", _false);
+    out("mov rax, 0"); // false
+    printf("%s:\n", end);
     break;
   case ND_OR:
-    // 1 || 1
-    out("or rax, rdi");
+    // todo : refactoring.
+    out("cmp rax, 1");
+    char *_true = new_label("or_true", next_label);
+    char *_false2 = new_label("or_false", next_label);
+    char *end2 = new_label("or_end", next_label);
+    next_label++;
+    printf("  je %s\n", _true);
+    out("cmp rdi, 1");
+    printf("  jne %s\n", _false2);
+    printf("%s:\n", _true);
+    out("mov rax, 1"); // true
+    printf("  jmp %s\n", end2);
+    printf("%s:\n", _false2);    
+    out("mov rax, 0"); // false
+    printf("%s:\n", end2);
     break;
   case '&':
     // 3 & 1 
