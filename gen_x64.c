@@ -294,6 +294,14 @@ void gen(Node *node){
     // 1 || 1
     out("or rax, rdi");
     break;
+  case '&':
+    // 3 & 1 
+    out("and rax, rdi");
+    break;
+  case '|':
+    // 3 | 1
+    out("or rax, rdi");
+    break;
   case ND_LSHIFT:
     out("mov rcx, rdi");    
     out("sal rax, cl");

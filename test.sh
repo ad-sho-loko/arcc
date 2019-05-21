@@ -69,6 +69,8 @@ try 1 'int main(){return 1 == 1 || 1 == 2;}'
 try 5 'int main(){if(1 == 1 || 1 == 1) return 5;}'
 try 5 'int main(){if(1 == 2 || 1 == 1) return 5;}'
 try 5 'int main(){if(1 == 1 || 1 == 2) return 5;}'
+try 5 'int main(){if(1 | 0){return 5;}else{return 10;}}'
+try 10 'int main(){if(1 & 0){return 5;}else{return 10;}}'
 try 10 'int main(){if (1 == 2 || 2 ==1){return 5;} return 10;}'
 try 99 'int main(){int a;a = 5; if(1 == 1 && a == 5){return 99;}}'
 try 4 'int main(){int a;a = 3; a+=1; return a;}'
@@ -121,4 +123,6 @@ try 9 'int main(){ int a; int i; i = 0; a = 0; while(i<10){if(i == 5) {i+=1; con
 try 3 'int main(){int x; x = 3; int *y; y = &x; return *y;}'
 try 3 'int main(){int **x; int *y; int z; int *a; z = 3; y = &z; x = &y; a = *x; return *a;}'
 try 6 'int main(){int a; int *b; int **c; a = 6; b = &a; c = &b; return **c;}'
+# ref
+try 4 'int main(){int a; int b; a = 7; b = 4; return a & b;}'
 echo ok

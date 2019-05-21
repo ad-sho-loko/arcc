@@ -280,13 +280,26 @@ Node *equality(){
   }
 }
 
-Node *expr(){
+Node *bit(){
   Node *n = equality();
   for(;;){
+    if(consume('&')){
+      n = new_node('&', n, equality());
+    }else if(consume('|')){
+      n = new_node('|', n, equality());
+    }else{
+      return n;
+    }
+  }
+}
+
+Node *expr(){
+  Node *n = bit();
+  for(;;){
     if(consume(TK_AND)){
-      n = new_node(ND_AND, n, equality());
+      n = new_node(ND_AND, n, bit());
     }else if(consume(TK_OR)){
-      n = new_node(ND_OR, n, equality());
+      n = new_node(ND_OR, n, bit());
     }else{
       return n;
     }
