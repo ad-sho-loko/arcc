@@ -1,3 +1,5 @@
+#include <stdio.h>
+#include <stdarg.h>
 #include "arcc.h"
 
 static int pos = 0;
@@ -49,30 +51,46 @@ Node *new_node_declare_func(char *name){
   return n;
 }
 
+static void next(){
+  pos++;
+}
+
 void assume(int ty){
   int actual = ((Token*)(tokens->data[pos]))->ty;
   if(actual != ty){
-    error("Line.%d in parse.c : expected=%c but accutal=%c %d  in parse.c", __LINE__, ty, actual, actual);
+    error("parse.c : Line.%d\n   expected=%c but accutal=%c %d  in parse.c", __LINE__, ty, actual, actual);
   }
 }
 
 int consume(int ty){
   if(((Token*)tokens->data[pos])->ty != ty)
     return 0;
-  pos++;
+  next();
   return 1;
 }
 
 void expect(int ty){
   int actual = ((Token*)(tokens->data[pos]))->ty;
   if(actual != ty){
-    error("Line.%d in parse.c : expected=%c but accutal=%c %d  in parse.c", __LINE__, ty, actual, actual);
+    error("parse.c : Line.%d\n  expected=%c but accutal=%c %d  in parse.c", __LINE__, ty, actual, actual);
   }
-  pos++;
+  next();
+}
+
+void expect2(int ty, char *fmt, ...){
+  int actual = ((Token*)(tokens->data[pos]))->ty;
+  if(actual != ty){
+    va_list ap;
+    va_start(ap, fmt);
+    vfprintf(stderr, fmt, ap);
+    fprintf(stderr, "\n");
+    exit(1);
+  }
+  next();
 }
 
 Node* ident(Token *tkn){
-  // WHEN calling function
+  // WHEN calling function comes...
   if(consume('(')){
     Node *n = new_node_func(tkn->name);
     n->items = new_vector();
@@ -84,9 +102,9 @@ Node* ident(Token *tkn){
     return n;
   }
   
-  // WHEN variable : 一度定義されていないとエラーになる.
-  if(map_geti(local_env, tkn->name) == (int)NULL){
-    error("Line.%d in parse.c : 定義されていない変数です : %s", __LINE__, tkn->name);
+  // WHEN variable comes...
+  if(!map_contains(local_env, tkn->name)){
+    error("parse.c : Line %d \n  ERROR: name '%s' is not defined. ", __LINE__, tkn->name);
   }
   
   Node *n = new_node_ident(tkn->name);
@@ -105,16 +123,9 @@ Node* term(){
   if(consume('(')){
     Node *n = assign();
     if(!consume(')')){
-      error("Line%d in parse.c : unexpected branket `)`", __LINE__);
+      error("parse.c : Line %d \n  ERROR: unexpected branket `)`", __LINE__);
     }
     return n;
-  }
-
-  Token *tkn = ((Token*)(tokens->data[pos]));
-  pos++;
-
-  if(tkn->ty == TK_NUM){
-    return new_node_num(tkn->val);
   }
 
   // The progress of implemention.
@@ -123,60 +134,56 @@ Node* term(){
   // [x] int a, b;
   // [x] int a = 1, b;
   // [x] int a = 1, b = 2;
-  if(tkn->ty == TK_TYPE){
+  if(consume(TK_TYPE)){
     if(((Token*)(tokens->data[pos]))->ty != TK_IDENT){
-      error("Line.%d 型宣言のあとは変数でなければいけません : parse.c ", __LINE__);
+      error("parse.c : Line %d \n  型宣言のあとは変数でなければいけません", __LINE__);
     }
-
     Token *t = ((Token*)(tokens->data[pos]));
     Node *n = new_node_ident(t->name);
-    pos++;
+    expect(TK_IDENT);
     return n;
   }
 
-  if(tkn->ty == TK_ADR){
+  if(consume(TK_ADR)){
     Token *t = ((Token*)(tokens->data[pos]));
-    if(t->ty != TK_IDENT){
-      error("アンパサンドのあとは必ず変数です");
-    }
+    expect2(TK_IDENT, "parse.c : Line %d \n ERROR : アンパサンドのあとは必ず変数です", __LINE__);
 
-    // 一度定義されていないとエラーになる.
-    if(map_geti(local_env, t->name) == (int)NULL){
-      error("Line.%d in parse.c : 定義されていない変数です : %s", __LINE__, t->name);
+    if(!map_contains(local_env, t->name)){
+      error("parse.c : Line %d \n  ERROR: name '%s' is not defined. ", __LINE__, t->name);
     }
-    pos++;
     Node *n = new_node(ND_ADR, NULL, NULL);
     n->name = t->name;
     return n;
   }
 
-  if(tkn->ty == TK_PTR){
-
+  if(consume(TK_PTR)){
     int cnt = 1;
     while(consume(TK_PTR)){
       cnt++;
     }
     
-    // ポインタのあとは必ず変数
-    assume(TK_IDENT);
     Token *t = ((Token*)(tokens->data[pos]));
+    expect2(TK_IDENT, "parse.c : Line %d \n ERROR : ポインタのあとは必ず変数です", __LINE__);
 
-    // 一度定義されていないとエラーになる.
-    if(map_geti(local_env, t->name) == (int)NULL){
-      error("Line.%d in parse.c : 定義されていない変数です : %s", __LINE__, t->name);
+    if(!map_contains(local_env, t->name)){
+      error("parse.c : Line %d \n  ERROR: name '%s' is not defined. ", __LINE__, t->name);
     }
-
-    pos++;
+    
     Node *n = new_node_ptr(cnt);
     n->name = t->name;
     return n;
   }
+
+  Token *tkn = ((Token*)(tokens->data[pos]));
+  if(consume(TK_NUM)){
+    return new_node_num(tkn->val);
+  }
   
-  if(tkn->ty == TK_IDENT){
+  if(consume(TK_IDENT)){
     return ident(tkn);
   }
   
-  error("Line.%d in parse.c : 数値でも開きカッコでもないトークンです: %s", __LINE__  ,((Token*)(tokens->data[pos]))->input);
+  error("parse.c : Line.%d\n  ERROR: expected the token of 'number' or '(', but '%c'", __LINE__  ,((Token*)(tokens->data[pos]))->ty);
   exit(1);
 }
 

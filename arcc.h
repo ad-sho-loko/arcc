@@ -120,6 +120,7 @@ void map_puti(Map* m, char* key, int value);
 Map *map_getm(Map* m, char *key);
 void map_putm(Map* m, char* key, Map* value);
 int map_len(Map* m);
+int map_contains(Map* m, char* key);
 
 // global variables.
 extern Vector *nodes;

@@ -134,6 +134,12 @@ int map_len(Map *m){
   return m->keys->len;
 }
 
+int map_contains(Map *m, char* key){
+  if (map_len(m) == 0)
+    return 0;
+  return map_get(m, key) != NULL;
+}
+
 static char* stringfy_ascii(char code){
   char *s = malloc(sizeof(char)*2);
   s[0] = code; s[1] = '\0';
