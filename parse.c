@@ -183,7 +183,7 @@ Node* term(){
     return ident(tkn);
   }
   
-  error("parse.c : Line.%d\n  ERROR: expected the token of 'number' or '(', but '%c'", __LINE__  ,((Token*)(tokens->data[pos]))->ty);
+  error("parse.c : Line.%d\n  ERROR: expected the token of 'number' or '(', but '%c %d'", __LINE__  , tkn->ty, tkn->ty);
   exit(1);
 }
 

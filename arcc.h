@@ -122,6 +122,16 @@ void map_putm(Map* m, char* key, Map* value);
 int map_len(Map* m);
 int map_contains(Map* m, char* key);
 
+typedef struct{
+  int pos;
+  Vector* items;
+}Stack;
+
+Stack *new_stack();
+void stack_push(Stack *stack, void* v);
+void *stack_pop(Stack *stack);
+void *stack_peek(Stack *stack);
+
 // global variables.
 extern Vector *nodes;
 extern Vector *tokens;

@@ -125,4 +125,8 @@ try 3 'int main(){int **x; int *y; int z; int *a; z = 3; y = &z; x = &y; a = *x;
 try 6 'int main(){int a; int *b; int **c; a = 6; b = &a; c = &b; return **c;}'
 # ref
 try 4 'int main(){int a; int b; a = 7; b = 4; return a & b;}'
+try 100 'int main(){int a; int b; int cnt; cnt = 0; for(a = 0; a < 10; a+=1){ for(b = 0; b < 10; b+=1){ cnt++; }} return cnt;}'
+try 5 'int main(){if(1==1){if(1==1){return 5;} return 4;} return 3;}'
+try 4 'int main(){if(1==1){if(1==2){return 5;} return 4;} return 3;}'
+try 3 'int main(){if(1==2){if(1==2){return 5;} return 4;} return 3;}'
 echo ok

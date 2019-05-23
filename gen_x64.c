@@ -4,11 +4,15 @@
 
 static int next_label = 1;
 static Map* now_env;
-static char* now_scope_start;
-static char* now_scope_last;
-static char* now_scope_end;
-static char *regs[2] = {"rdi", "rsi"};
 
+typedef struct Env{
+  int n;
+  char *start;
+  char *then;
+  char *els;
+  char *last;
+  char *end;
+} Env;
 
 static char *new_label(char *sign, int cnt){
   char *s = malloc(sizeof(char)*256);
@@ -16,8 +20,27 @@ static char *new_label(char *sign, int cnt){
   return s;
 }
 
+static Env *new_env(int n){
+  Env *e = malloc(sizeof(Env));
+  e->n = n;
+  e->start = new_label("begin", n);
+  e->then = new_label("then", n);
+  e->els = new_label("else", n);
+  e->last = new_label("last", n);
+  e->end = new_label("end", n);
+  return e;
+}
+
+static Stack *env_stack;
+
+static char *regs[2] = {"rdi", "rsi"};
+
+
 void gen_top(){
 
+  // init
+  env_stack = new_stack();
+  
   printf(".intel_syntax noprefix\n");
   printf(".global main\n");
   
@@ -66,8 +89,10 @@ void gen(Node *node){
     out("cmp rax, 1");
 
     int lcnt = next_label++;
+    Env *e = new_env(lcnt);
+    // stack_push(env_stack, e);
+    
     printf("%s:\n", new_label("then", lcnt));
-
     if(node->els != NULL){
       printf("  jne %s\n", new_label("else", lcnt));
     }else{
@@ -75,7 +100,8 @@ void gen(Node *node){
     }
 
     gen(node->then);
-
+    // e = stack_pop(env_stack);
+    
     if(node->els != NULL){
       printf("%s:\n", new_label("else", lcnt));
       gen(node->els);
@@ -88,58 +114,62 @@ void gen(Node *node){
 
   if(node->ty == ND_WHILE){
     int lcnt = next_label++;
-    now_scope_start = new_label("begin", lcnt);
-    now_scope_last = new_label("last", lcnt);
-    now_scope_end = new_label("end", lcnt);
 
-    printf("%s:\n", now_scope_start);
-    printf("%s:\n", now_scope_last); // forとの互換性のためwhileにも残しているが微妙.
+    Env *e = new_env(lcnt);
+    stack_push(env_stack, e);
+    
+    printf("%s:\n", e->start);
+    printf("%s:\n", e->last); // forとの互換性のためwhileにも残しているが微妙.
     gen(node->cond);
-
+    
     out("pop rax");
     out("cmp rax, 1");
-    printf("  jne %s\n", new_label("end", lcnt));
+    printf("  jne %s\n", e->end);
     gen(node->then);
-    printf("  jmp %s\n", new_label("begin", lcnt));
-    printf("%s:\n", new_label("end", lcnt));
+    e = stack_pop(env_stack);
+    printf("  jmp %s\n", e->start);
+    printf("%s:\n", e->end);
     return;
   }
 
   if(node->ty == ND_FOR){
-    int lcnt = next_label++;
-    now_scope_start = new_label("begin", lcnt);
-    now_scope_last = new_label("last", lcnt);
-    now_scope_end = new_label("end", lcnt);
+    int lcnt = next_label++;    
+
+    Env *e = new_env(lcnt);
+    stack_push(env_stack, e);
+    
     if(node->init != NULL){
       gen(node->init);
     }
-    printf("%s:\n", now_scope_start);
+    printf("%s:\n", e->start);
     
     if(node->cond != NULL){
       gen(node->cond);
       out("pop rax");
       out("cmp rax, 1");
-      printf("  jne %s\n", new_label("end", lcnt));
+      printf("  jne %s\n", e->end);
     }
-
+    
     gen(node->then);
-    printf("%s:\n", now_scope_last);
+    e = stack_pop(env_stack);
+    
+    printf("%s:\n", e->last);
     if(node->last != NULL){
       gen(node->last);
     }
     
-    printf("  jmp %s\n", now_scope_start);
-    printf("%s:\n", now_scope_end);
+    printf("  jmp %s\n", e->start);
+    printf("%s:\n", e->end);
     return; 
   }
 
   if(node->ty == ND_BREAK){
-    printf("  jmp %s\n", now_scope_end);
+    printf("  jmp %s\n", ((Env*)stack_peek(env_stack))->end);
     return;
   }
 
   if(node->ty == ND_CONTINUE){
-    printf("  jmp %s\n", now_scope_last);
+    printf("  jmp %s\n", ((Env*)stack_peek(env_stack))->last);
     return;
   }
   

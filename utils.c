@@ -140,6 +140,27 @@ int map_contains(Map *m, char* key){
   return map_get(m, key) != NULL;
 }
 
+Stack *new_stack(){
+  Stack *s = malloc(sizeof(Stack));
+  s->items = new_vector();
+  s->pos = 0;
+  return s;
+}
+
+void stack_push(Stack *stack, void* v){
+  stack->items->data[stack->pos] = v;
+  stack->pos++;
+}
+
+void *stack_pop(Stack *stack){
+  if(stack->pos <= 0) error("stack is no items.");
+  return stack->items->data[--stack->pos];
+}
+
+void *stack_peek(Stack *stack){
+  return stack->items->data[stack->pos-1];
+}
+
 static char* stringfy_ascii(char code){
   char *s = malloc(sizeof(char)*2);
   s[0] = code; s[1] = '\0';
