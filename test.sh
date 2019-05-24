@@ -129,4 +129,6 @@ try 100 'int main(){int a; int b; int cnt; cnt = 0; for(a = 0; a < 10; a+=1){ fo
 try 5 'int main(){if(1==1){if(1==1){return 5;} return 4;} return 3;}'
 try 4 'int main(){if(1==1){if(1==2){return 5;} return 4;} return 3;}'
 try 3 'int main(){if(1==2){if(1==2){return 5;} return 4;} return 3;}'
+
+# try 8 'int main(){int *p; alloc4(&p, 1, 2, 4, 8); int *q; q = p + 2; *q; q = p + 3; return *q;}'
 echo ok

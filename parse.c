@@ -5,6 +5,14 @@
 static int pos = 0;
 static Map *local_env;
 
+Var *new_var(Type *type, char* name, int pos){
+  Var *v = malloc(sizeof(Var));
+  v->type = type;
+  v->pos = pos;
+  v->name = name;
+  return v;
+}
+
 Node *new_node(int ty, Node *lhs, Node *rhs){
   Node* n = malloc(sizeof(Node));
   n->ty = ty;
@@ -27,11 +35,18 @@ Node *new_node_num(int val){
   return n;
 }
 
+Node *new_node_init_ident(Type* type, char* name){
+  Node *n = malloc(sizeof(Node));
+  n->ty = ND_IDENT;
+  n->name = name;
+  map_putv(local_env, name, new_var(type, name, (map_len(local_env) + 1) * 8));
+  return n;
+}
+
 Node *new_node_ident(char* name){
   Node *n = malloc(sizeof(Node));
   n->ty = ND_IDENT;
   n->name = name;
-  map_puti(local_env, name, (map_len(local_env) + 1) * 8);
   return n;
 }
 
@@ -138,8 +153,11 @@ Node* term(){
     if(((Token*)(tokens->data[pos]))->ty != TK_IDENT){
       error("parse.c : Line %d \n  型宣言のあとは変数でなければいけません", __LINE__);
     }
+
+    // todo : 同じ変数名あるとNGにする.
+    
     Token *t = ((Token*)(tokens->data[pos]));
-    Node *n = new_node_ident(t->name);
+    Node *n = new_node_init_ident(t->type, t->name);
     expect(TK_IDENT);
     return n;
   }
@@ -455,12 +473,11 @@ void toplevel(){
     // args.
     expect('(');
     while(((Token*)tokens->data[pos])->ty != ')'){
-      if(!consume(TK_TYPE)){
-        error("Line.%d in parse.c : 仮引数は型から始める必要があります", __LINE__);
-      }
-      Token *now = (Token*)tokens->data[pos];
-      push_back(nodes, new_node_ident(now->name));
-      expect(TK_IDENT);
+      // if(!consume(TK_TYPE)){
+      //  error("Line.%d in parse.c : 仮引数は型から始める必要があります", __LINE__);
+      //}
+      assume(TK_TYPE);
+      term();
       consume(',');
       // todo : refine.
       n->arg_num++;

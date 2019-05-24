@@ -76,7 +76,7 @@ void gen_lval(Node *node){
   if(node->ty != ND_IDENT)
     error("Line.%d in gen.c : 左辺は変数でなければいけません", __LINE__);
 
-  int offset = map_geti(now_env, node->name);
+  int offset = map_getv(now_env, node->name)->pos;
   out("mov rax, rbp");
   printf("  sub rax, %d\n", offset);
   out("push rax");
@@ -89,7 +89,8 @@ void gen(Node *node){
     out("cmp rax, 1");
 
     int lcnt = next_label++;
-    Env *e = new_env(lcnt);
+    // todo : refactoring
+    // Env *e = new_env(lcnt);
     // stack_push(env_stack, e);
     
     printf("%s:\n", new_label("then", lcnt));
@@ -187,7 +188,7 @@ void gen(Node *node){
 
   // &x
   if(node->ty == ND_ADR){
-    int offset = map_geti(now_env, node->name);
+    int offset = map_getv(now_env, node->name)->pos;
     out("mov rax, rbp");
     printf("  sub rax, %d\n", offset);
     out("push rax");
@@ -196,7 +197,7 @@ void gen(Node *node){
 
   // *x **x ***x
   if(node->ty == ND_PTR){
-    int offset = map_geti(now_env, node->name);
+    int offset = map_getv(now_env, node->name)->pos;
     out("mov rax, rbp");
     printf("  sub rax, %d\n", offset);
     out("mov rax, [rax]");

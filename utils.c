@@ -114,12 +114,22 @@ void map_put(Map *m, char *key, void *value) {
   push_back(m->values, value);
 }
 
+/*
 void map_puti(Map *m, char *key, int value){
   map_put(m, key, (void*)(intptr_t)value);
 }
 
 int map_geti(Map *m, char *key){
   return (intptr_t)map_get(m, key);
+}
+*/
+
+void map_putv(Map *m, char *key, Var* value){
+  map_put(m, key, value);
+}
+
+Var *map_getv(Map *m, char *key){
+  return (Var*)map_get(m, key);
 }
 
 void map_putm(Map *m, char *key, Map* value){

@@ -103,6 +103,12 @@ typedef struct Node{
   char* name;
 } Node;
 
+typedef struct{
+  Type *type;
+  char* name;
+  int pos;
+} Var;
+
 // methods for vector.
 Vector *new_vector();
 void push_back(Vector *v, void* elm);
@@ -115,8 +121,8 @@ typedef struct{
 
 // methods for map.
 Map *new_map();
-int map_geti(Map* m, char *key);
-void map_puti(Map* m, char* key, int value);
+Var *map_getv(Map* m, char *key);
+void map_putv(Map* m, char* key, Var* value);
 Map *map_getm(Map* m, char *key);
 void map_putm(Map* m, char* key, Map* value);
 int map_len(Map* m);
