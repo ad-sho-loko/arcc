@@ -149,7 +149,10 @@ Node* term(){
   // [x] int a, b;
   // [x] int a = 1, b;
   // [x] int a = 1, b = 2;
-  if(consume(TK_TYPE)){
+  if(((Token*)(tokens->data[pos]))->ty == TK_TYPE){
+    Type *type = ((Token*)(tokens->data[pos]))->type;
+    expect(TK_TYPE);
+    
     if(((Token*)(tokens->data[pos]))->ty != TK_IDENT){
       error("parse.c : Line %d \n  型宣言のあとは変数でなければいけません", __LINE__);
     }
@@ -157,7 +160,7 @@ Node* term(){
     // todo : 同じ変数名あるとNGにする.
     
     Token *t = ((Token*)(tokens->data[pos]));
-    Node *n = new_node_init_ident(t->type, t->name);
+    Node *n = new_node_init_ident(type, t->name);
     expect(TK_IDENT);
     return n;
   }
@@ -450,6 +453,25 @@ void init_local_env(char *func_name){
   map_putm(global_env, func_name, local_env);
 }
 
+void walk(Node *n){
+  if(n->lhs != NULL) walk(n->lhs);
+  if(n->rhs != NULL) walk(n->rhs);
+
+  // ポインタの加減算を調整するためだけ....
+  if(n->ty == '+' || n->ty == '-'){
+    if(n->lhs != NULL && n->lhs->ty == ND_IDENT && n->rhs != NULL && n->rhs->ty == ND_NUM){
+      if(map_getv(local_env, n->lhs->name)->type->ty == TK_PTR)
+        n->rhs->val = n->rhs->val * sizeof(int);
+    }
+  }
+}
+
+void post_parse(){
+  for(int i=0; i< nodes->len; i++){
+    walk(nodes->data[i]);
+  }
+}
+
 void toplevel(){
   while(((Token*)tokens->data[pos])->ty != TK_EOF){
     // return-type
@@ -490,4 +512,6 @@ void toplevel(){
     expect('}');    
     push_back(nodes, new_node(ND_FUNC_END, NULL, NULL));
   }
+  // todo : Node構築後の作業
+  post_parse();
 }

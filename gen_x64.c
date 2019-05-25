@@ -32,10 +32,9 @@ static Env *new_env(int n){
 }
 
 static Stack *env_stack;
-
 static char *regs[2] = {"rdi", "rsi"};
 
-
+// TODO : 出力にコメントをつける
 void gen_top(){
 
   // init

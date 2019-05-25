@@ -6,6 +6,7 @@ try(){
 
     ## build
     ./arcc "$input" > tmp.s
+    gcc -c ./test/foo.c -o ./test/foo.o
     gcc -o tmp tmp.s ./test/foo.o
     ./tmp
 
@@ -130,5 +131,7 @@ try 5 'int main(){if(1==1){if(1==1){return 5;} return 4;} return 3;}'
 try 4 'int main(){if(1==1){if(1==2){return 5;} return 4;} return 3;}'
 try 3 'int main(){if(1==2){if(1==2){return 5;} return 4;} return 3;}'
 
-# try 8 'int main(){int *p; alloc4(&p, 1, 2, 4, 8); int *q; q = p + 2; *q; q = p + 3; return *q;}'
+try 8 'int main(){int *q; int *p; p = alloc4(); q = p + 3; return *q;}'
+try 2 'int main(){int *p; int *q; p = alloc4(); q = p + 1; return *q;}'
+try 2 'int main(){int *p; p = alloc4(); p = p + 2; p = p - 1; return *p;}'
 echo ok
