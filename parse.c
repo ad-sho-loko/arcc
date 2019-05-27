@@ -459,7 +459,7 @@ static void walk(Node *n){
 
   // ポインタの加減算を調整するためだけ....
   // TODO: 左にしかポインタおけない
-  // TODO: 2つまでのデリファレンス（**p）しか対応していない
+  // TODO: 2つまでのデリファレンス（**p）しか対応していない?
   if(n->ty == '+' || n->ty == '-'){
     if(n->lhs != NULL && n->lhs->ty == ND_IDENT && n->rhs != NULL && n->rhs->ty == ND_NUM){
       Var *v = map_getv(local_env, n->lhs->name);
@@ -509,7 +509,7 @@ void toplevel(){
     while(((Token*)tokens->data[pos])->ty != ')'){
       // if(!consume(TK_TYPE)){
       //  error("Line.%d in parse.c : 仮引数は型から始める必要があります", __LINE__);
-      //}
+      // }
       assume(TK_TYPE);
       term();
       consume(',');

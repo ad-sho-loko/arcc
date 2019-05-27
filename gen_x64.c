@@ -52,14 +52,15 @@ void gen_top(){
       printf("%s:\n",n->name);
       out("push rbp");
       out("mov rbp, rsp");
-      printf("  sub rsp, %d\n", do_align((map_len(now_env)) * 8, 8));
+      outf("sub rsp, %d", do_align((map_len(now_env)) * 8, 8));
 
       // todo : only two args.
       for(int i=0; i < n->arg_num; i++){
-        printf("  mov [rbp-%d], %s\n", (i+1)*8, regs[i]);
+        outf("mov [rbp-%d], %s", (i+1)*8, regs[i]);
       }
     }else if(((Node*)nodes->data[i])->ty == ND_FUNC_END){
       // epiogue
+      outd("epiogue");
       out("mov rsp, rbp");
       out("pop rbp");
       out("ret");
@@ -77,7 +78,7 @@ void gen_lval(Node *node){
 
   int offset = map_getv(now_env, node->name)->pos;
   out("mov rax, rbp");
-  printf("  sub rax, %d\n", offset);
+  outf("sub rax, %d", offset);
   out("push rax");
 }
 
@@ -94,9 +95,9 @@ void gen(Node *node){
     
     printf("%s:\n", new_label("then", lcnt));
     if(node->els != NULL){
-      printf("  jne %s\n", new_label("else", lcnt));
+      outf("jne %s", new_label("else", lcnt));
     }else{
-      printf("  jne %s\n", new_label("end", lcnt));
+      outf("jne %s", new_label("end", lcnt));
     }
 
     gen(node->then);
@@ -105,7 +106,7 @@ void gen(Node *node){
     if(node->els != NULL){
       printf("%s:\n", new_label("else", lcnt));
       gen(node->els);
-      printf("  jmp %s\n", new_label("end", lcnt));      
+      outf("jmp %s\n", new_label("end", lcnt));      
     }
     printf("%s:\n", new_label("end", lcnt));
     out("push rax");
@@ -124,10 +125,10 @@ void gen(Node *node){
     
     out("pop rax");
     out("cmp rax, 1");
-    printf("  jne %s\n", e->end);
+    outf("jne %s", e->end);
     gen(node->then);
     e = stack_pop(env_stack);
-    printf("  jmp %s\n", e->start);
+    outf("jmp %s", e->start);
     printf("%s:\n", e->end);
     return;
   }
@@ -147,7 +148,7 @@ void gen(Node *node){
       gen(node->cond);
       out("pop rax");
       out("cmp rax, 1");
-      printf("  jne %s\n", e->end);
+      outf("jne %s", e->end);
     }
     
     gen(node->then);
@@ -158,18 +159,18 @@ void gen(Node *node){
       gen(node->last);
     }
     
-    printf("  jmp %s\n", e->start);
+    outf("jmp %s", e->start);
     printf("%s:\n", e->end);
     return; 
   }
 
   if(node->ty == ND_BREAK){
-    printf("  jmp %s\n", ((Env*)stack_peek(env_stack))->end);
+    outf("jmp %s", ((Env*)stack_peek(env_stack))->end);
     return;
   }
 
   if(node->ty == ND_CONTINUE){
-    printf("  jmp %s\n", ((Env*)stack_peek(env_stack))->last);
+    outf("jmp %s", ((Env*)stack_peek(env_stack))->last);
     return;
   }
   
@@ -262,12 +263,12 @@ void gen(Node *node){
       for(int i=0; i<node->items->len; i++){
         // todo : now only unitl 2 args
         gen(node->items->data[i]);
-        printf("  pop %s\n", regs[i]);
+        outf("pop %s", regs[i]);
       }
     }
 
     // TODO : align 16 byte.
-    printf("  call %s\n", node->name);
+    outf("call %s", node->name);
     out("push rax");
     return ;
   }
@@ -323,11 +324,11 @@ void gen(Node *node){
     char *_false = new_label("and_false", next_label);
     char *end = new_label("and_end", next_label);
     next_label++;
-    printf("  je %s\n", _false);
+    outf("je %s", _false);
     out("cmp rdi, 0");
-    printf("  je %s\n", _false);
+    outf("je %s", _false);
     out("mov rax, 1"); // true
-    printf("  jmp %s\n", end);
+    outf("jmp %s", end);
     printf("%s:\n", _false);
     out("mov rax, 0"); // false
     printf("%s:\n", end);
@@ -339,12 +340,12 @@ void gen(Node *node){
     char *_false2 = new_label("or_false", next_label);
     char *end2 = new_label("or_end", next_label);
     next_label++;
-    printf("  je %s\n", _true);
+    outf("je %s", _true);
     out("cmp rdi, 1");
-    printf("  jne %s\n", _false2);
+    outf("jne %s", _false2);
     printf("%s:\n", _true);
     out("mov rax, 1"); // true
-    printf("  jmp %s\n", end2);
+    outf("jmp %s", end2);
     printf("%s:\n", _false2);    
     out("mov rax, 0"); // false
     printf("%s:\n", end2);

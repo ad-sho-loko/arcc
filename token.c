@@ -3,6 +3,9 @@
 #include <stdbool.h>
 #include "arcc.h"
 
+Vector *tokens;
+static int pos;
+
 static bool is_var_leading(char ch){
   return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || (ch == '_');  
 }
@@ -72,36 +75,51 @@ static Type* new_ptr(){
   return t;
 }
 
-static Vector *pointernized(Vector* tokens){
-  Vector* v = new_vector();
-  for(int i=0; i<tokens->len; i++){
-    if( ((Token*)(tokens->data[i]))->ty == TK_TYPE && ( i+1 < tokens->len && ((Token*)(tokens->data[i+1]))->ty == TK_PTR) ){
+static Token *current_token(){
+  return (Token*)(tokens->data[pos]);
+}
 
-      // todo : refatoring
-      // 複数ポインタへの対応
-      Token *top = ((Token*)(tokens->data[i]));
+static int current_token_ty(){
+  return ((Token*)(tokens->data[pos]))->ty;
+}
+
+static bool is_type_token(){
+  return ((Token*)(tokens->data[pos]))->ty == TK_TYPE && ( pos+1 < tokens->len && ((Token*)(tokens->data[pos+1]))->ty == TK_PTR);
+}
+
+// spec: int **x => type -> ptr -> ptr -> int -> NULL
+static Vector *pointernized(){
+  Vector* v = new_vector();
+  for(pos=0; pos<tokens->len; pos++){
+    if(is_type_token()){
+      
+      Token *top = current_token();
+
       Type *last_type = top->type;
+
       top->type = new_ptr();
       Type *now = top->type;
-      i++;
-      while(((Token*)(tokens->data[i]))->ty == TK_PTR){
+      pos++;
+      
+      while(current_token_ty() == TK_PTR){
         now->ptr_of = new_ptr();
         now = now->ptr_of;
-        i++;
+        pos++;
       }
+
       now->ptr_of = last_type;
       push_back(v, top);
-      i--;
+      pos--;
       
     }else{
-      push_back(v, tokens->data[i]);
+      push_back(v, tokens->data[pos]);
     }
   }
   return v;
 }
 
 Vector *tokenize(char *p){
-  Vector* tokens = new_vector();
+  tokens = new_vector();
 
   while(*p){
 
@@ -307,5 +325,5 @@ Vector *tokenize(char *p){
     error("Line.%d in token.c : cannot tokenize %s", __LINE__, p);
   }
   push_back(tokens, new_token(TK_EOF, p, 0));
-  return pointernized(tokens);
+  return pointernized();
 }

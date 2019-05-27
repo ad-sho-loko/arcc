@@ -18,6 +18,18 @@ void out(char* code){
   printf("  %s\n", code);
 }
 
+void outf(char *fmt, ...){
+  va_list ap;
+  va_start(ap, fmt);
+  fprintf(stdout, "  ");
+  vfprintf(stdout, fmt, ap);
+  fprintf(stdout, "\n");
+}
+
+void outd(char *code){
+  printf("## %s\n", code);
+}
+
 int do_align(int x, int align){
   return (x + align - 1) & ~(align - 1);
 }
