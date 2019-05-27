@@ -226,6 +226,8 @@ Node* unary(){
   }else if(consume('-')){
     // -2 -> 0-2
     return new_node('-', new_node_num(0), term());
+  }else if(consume('~')){
+    return new_node('~', term(), NULL);
   }
   return term();
 }
@@ -306,6 +308,8 @@ Node *bit(){
   for(;;){
     if(consume('&')){
       n = new_node('&', n, equality());
+    }else if(consume('^')){
+      n = new_node('^', n, equality());
     }else if(consume('|')){
       n = new_node('|', n, equality());
     }else{

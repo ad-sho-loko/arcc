@@ -207,6 +207,14 @@ void gen(Node *node){
     out("push rax");
     return;
   }
+
+  if(node->ty == '~'){
+    gen(node->lhs);
+    out("pop rax");
+    out("not rax");
+    out("push rax");
+    return;
+  }
   
   if(node->ty == '='){
     gen_lval(node->lhs);
@@ -357,6 +365,9 @@ void gen(Node *node){
   case '|':
     // 3 | 1
     out("or rax, rdi");
+    break;
+  case '^':
+    out("xor rax, rdi");
     break;
   case ND_LSHIFT:
     out("mov rcx, rdi");    

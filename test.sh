@@ -1,5 +1,5 @@
 ##!/bin/bash
-
+0;95;0c
 try(){
     expected="$1"
     input="$2"
@@ -59,6 +59,7 @@ try 15 'int main(){int a; int b; a = 5; b = 10; return a + b;}'
 try 24 'int main(){int a; int b; int c; a = 2; b = 3; c = 4; return a * b * c;}'
 # [NOT WORKING] big int.
 # try 1000 'int main(){a = 2; b = 50; c = 10; return a * b * c;}'
+try 255 'int main(){int x; x = 0; return ~x;}' # TODO:負に対応していない
 try 2 'int main(){int a; a = 1; if(a == 1){ return 2; }}'
 try 2 'int main(){int a; a = 1; if(a == 1) return 2;}'
 try 11 'int main(){int a;a = 1; if(1==a){return 11;}}'
@@ -134,6 +135,7 @@ try 100 'int main(){int a; int b; int cnt; cnt = 0; for(a = 0; a < 10; a+=1){ fo
 try 5 'int main(){if(1==1){if(1==1){return 5;} return 4;} return 3;}'
 try 4 'int main(){if(1==1){if(1==2){return 5;} return 4;} return 3;}'
 try 3 'int main(){if(1==2){if(1==2){return 5;} return 4;} return 3;}'
+try 12 'int main(){return 4 ^ 8;}'
 
 try 8 'int main(){int *q; int *p; p = alloc4(); q = p + 3; return *q;}'
 try 2 'int main(){int *p; int *q; p = alloc4(); q = p + 1; return *q;}'
