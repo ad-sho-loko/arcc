@@ -453,15 +453,27 @@ void init_local_env(char *func_name){
   map_putm(global_env, func_name, local_env);
 }
 
-void walk(Node *n){
+static void walk(Node *n){
   if(n->lhs != NULL) walk(n->lhs);
   if(n->rhs != NULL) walk(n->rhs);
 
   // ポインタの加減算を調整するためだけ....
+  // TODO: 左にしかポインタおけない
+  // TODO: 2つまでのデリファレンス（**p）しか対応していない
   if(n->ty == '+' || n->ty == '-'){
     if(n->lhs != NULL && n->lhs->ty == ND_IDENT && n->rhs != NULL && n->rhs->ty == ND_NUM){
-      if(map_getv(local_env, n->lhs->name)->type->ty == TK_PTR)
-        n->rhs->val = n->rhs->val * sizeof(int);
+      Var *v = map_getv(local_env, n->lhs->name);
+      if(v->type->ty == PTR)
+        switch(v->type->ptr_of->ptr_of->ty){
+        case INT:
+          n->rhs->val = n->rhs->val * sizeof(int);
+          break;
+        case PTR:
+          n->rhs->val = n->rhs->val * sizeof(int*);
+          break;
+        } else if(v->type->ty == INT){
+          // nop
+      }
     }
   }
 }

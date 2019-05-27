@@ -1,4 +1,5 @@
 ##!/bin/bash
+
 try(){
     expected="$1"
     input="$2"
@@ -6,7 +7,6 @@ try(){
 
     ## build
     ./arcc "$input" > tmp.s
-    gcc -c ./test/foo.c -o ./test/foo.o
     gcc -o tmp tmp.s ./test/foo.o
     ./tmp
 
@@ -21,6 +21,10 @@ try(){
     fi
 }
 
+# prepare
+gcc -c ./test/foo.c -o ./test/foo.o
+
+# act
 try 5 'int main(){2+3;}'
 try 1 'int main(){12-11;}'
 try 43 'int main(){40 +    3;}'
@@ -134,4 +138,5 @@ try 3 'int main(){if(1==2){if(1==2){return 5;} return 4;} return 3;}'
 try 8 'int main(){int *q; int *p; p = alloc4(); q = p + 3; return *q;}'
 try 2 'int main(){int *p; int *q; p = alloc4(); q = p + 1; return *q;}'
 try 2 'int main(){int *p; p = alloc4(); p = p + 2; p = p - 1; return *p;}'
+try 8 'int main(){int **p; p = alloc_ptr4(); p = p + 3; return **p;}'
 echo ok

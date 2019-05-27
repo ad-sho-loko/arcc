@@ -47,16 +47,15 @@ char *strndup(const char *s, size_t n) {
     return p;
 }
 
-static Token *new_token_type(int ty, int type, char* input){
+static Token *new_token_type(int type, char* input){
   Token *t = malloc(sizeof(Token));
-  t->ty = ty;
+  t->ty = TK_TYPE;
   t->input = input;
   t->val = 0;
   t->type = malloc(sizeof(Type));
   t->type->ty = type;
   return t;
 }
-
 
 static Token *new_token_ident(char *ident, char *input){
   Token *t = malloc(sizeof(Token));
@@ -69,7 +68,7 @@ static Token *new_token_ident(char *ident, char *input){
 
 static Type* new_ptr(){
   Type *t = malloc(sizeof(Type));
-  t->ty = TK_PTR;
+  t->ty = PTR;
   return t;
 }
 
@@ -289,7 +288,7 @@ Vector *tokenize(char *p){
     }    
 
     if(strncmp(p, "int", 3) == 0 && !is_alnum(p[3])){
-      push_back(tokens, new_token_type(TK_TYPE, TK_INT, p));
+      push_back(tokens, new_token_type(INT, p));
       p+=3;
       continue;
     }    
