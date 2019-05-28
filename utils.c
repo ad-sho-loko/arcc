@@ -213,10 +213,11 @@ char* stringfy_token(int tkn_kind){
   case 281: return "TK_ADR";
   case 282: return "TK_TYPE";
   case 283: return "TK_REM_EQ";
-  case 284: return "ND_LSHIFT";
-  case 285: return "ND_RSHIFT";
-  case 286: return "ND_LSHIFT_EQ";
-  case 287: return "ND_RSHIFT_EQ";
+  case 284: return "TK_LSHIFT";
+  case 285: return "TK_RSHIFT";
+  case 286: return "TK_LSHIFT_EQ";
+  case 287: return "TK_RSHIFT_EQ";
+  case 288: return "TK_SIZEOF";
   default: return "Unknown";
   }
 }

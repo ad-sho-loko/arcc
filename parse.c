@@ -104,6 +104,21 @@ void expect2(int ty, char *fmt, ...){
   next();
 }
 
+static int get_sizeof(Node *n){
+  if(n->ty == ND_NUM){
+    return 4;
+  }
+
+  if(n->ty == ND_IDENT){
+    Var *var = map_getv(local_env, n->name);
+    if(var->type->ty == INT) return 4;
+    if(var->type->ty == PTR) return 8;
+  }
+
+  error("parse.c : Line.%d\n  cannnot get sizeof %c", __LINE__, n->ty);
+  return 0;
+}
+
 Node* ident(Token *tkn){
   // WHEN calling function comes...
   if(consume('(')){
@@ -152,14 +167,19 @@ Node* term(){
   if(((Token*)(tokens->data[pos]))->ty == TK_TYPE){
     Type *type = ((Token*)(tokens->data[pos]))->type;
     expect(TK_TYPE);
-    
+
+    /*
     if(((Token*)(tokens->data[pos]))->ty != TK_IDENT){
       error("parse.c : Line %d \n  型宣言のあとは変数でなければいけません", __LINE__);
     }
+    */
 
-    // todo : 同じ変数名あるとNGにする.
-    
+    // 同じ変数名の宣言はエラー
     Token *t = ((Token*)(tokens->data[pos]));
+    if(map_contains(local_env, t->name)){
+      error("parse.c : Line %d \n  ERROR: name '%s' is already defined. ", __LINE__, t->name);
+    }
+
     Node *n = new_node_init_ident(type, t->name);
     expect(TK_IDENT);
     return n;
@@ -228,6 +248,13 @@ Node* unary(){
     return new_node('-', new_node_num(0), term());
   }else if(consume('~')){
     return new_node('~', term(), NULL);
+  }else if(consume(TK_SIZEOF)){
+    if(consume('(')){
+      Node *n = unary();
+      expect2(')', "parse.c : Line.%d\n  ERROR : sizeofの括弧が閉じられていません ", __LINE__);
+      return new_node_num(get_sizeof(n));
+    }
+    return new_node_num(get_sizeof(unary()));
   }
   return term();
 }

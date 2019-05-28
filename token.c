@@ -92,21 +92,16 @@ static Vector *pointernized(){
   Vector* v = new_vector();
   for(pos=0; pos<tokens->len; pos++){
     if(is_type_token()){
-      
       Token *top = current_token();
-
       Type *last_type = top->type;
-
       top->type = new_ptr();
       Type *now = top->type;
       pos++;
-      
       while(current_token_ty() == TK_PTR){
         now->ptr_of = new_ptr();
         now = now->ptr_of;
         pos++;
       }
-
       now->ptr_of = last_type;
       push_back(v, top);
       pos--;
@@ -311,6 +306,13 @@ Vector *tokenize(char *p){
       continue;
     }    
     
+    if(strncmp(p, "sizeof", 6) == 0 && !is_alnum(p[6])){
+      push_back(tokens, new_token_reserved(TK_SIZEOF, p));
+      p+=6;
+      continue;
+    }    
+    
+    // 変数
     if(is_var_leading(*p)){
       int len = 1;
       while(is_alnum(*(p+len))){

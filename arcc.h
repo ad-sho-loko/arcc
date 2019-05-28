@@ -32,8 +32,8 @@ enum{
   TK_LSHIFT,
   TK_RSHIFT,
   TK_LSHIFT_EQ,
-  TK_RSHIFT_EQ
-
+  TK_RSHIFT_EQ,
+  TK_SIZEOF
 };
 
 enum{
