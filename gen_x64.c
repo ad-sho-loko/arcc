@@ -110,16 +110,15 @@ void gen(Node *node){
       gen(node->els);
     }
     printf("%s:\n", new_label("end", lcnt));
-    // out("push rax");
     return;
   }
 
   if(node->ty == ND_WHILE){
-    int lcnt = next_label++;
 
-    Env *e = new_env(lcnt);
+    Env *e = new_env(next_label);
+    next_label++;
+
     stack_push(env_stack, e);
-    
     printf("%s:\n", e->start);
     printf("%s:\n", e->last); // forとの互換性のためwhileにも残しているが微妙.
     gen(node->cond);
@@ -135,9 +134,9 @@ void gen(Node *node){
   }
 
   if(node->ty == ND_FOR){
-    int lcnt = next_label++;    
+    Env *e = new_env(next_label);
+    next_label++;
 
-    Env *e = new_env(lcnt);
     stack_push(env_stack, e);
     
     if(node->init != NULL){
@@ -162,6 +161,7 @@ void gen(Node *node){
     
     outf("jmp %s", e->start);
     printf("%s:\n", e->end);
+
     return; 
   }
 
@@ -302,6 +302,24 @@ void gen(Node *node){
     printf("%s:\n", end);
     return;
   }
+
+  if(node->ty == ND_AND){
+    // todo : refactoring.
+    gen(node->lhs);
+    out("cmp rax, 1");
+    char *_false = new_label("and_false", next_label);
+    char *end = new_label("and_end", next_label);
+    next_label++;
+    outf("jne %s", _false);
+    gen(node->rhs);
+    outf("jne %s", _false);
+    out("push 1"); // true
+    outf("jmp %s", end);
+    printf("%s:\n", _false);
+    out("push 0"); // false
+    printf("%s:\n", end);
+    return;
+  }
   
   gen(node->lhs);
   gen(node->rhs);
@@ -347,21 +365,6 @@ void gen(Node *node){
     out("cmp rax, rdi");
     out("setle al");
     out("movzb rax, al");
-    break;
-  case ND_AND:
-    // todo : refactoring.
-    out("cmp rax, 0");
-    char *_false = new_label("and_false", next_label);
-    char *end = new_label("and_end", next_label);
-    next_label++;
-    outf("je %s", _false);
-    out("cmp rdi, 0");
-    outf("je %s", _false);
-    out("mov rax, 1"); // true
-    outf("jmp %s", end);
-    printf("%s:\n", _false);
-    out("mov rax, 0"); // false
-    printf("%s:\n", end);
     break;
   case '&':
     // 3 & 1 
