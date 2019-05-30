@@ -358,8 +358,22 @@ Node *expr(){
   }
 }
 
-Node *assign(){
+Node *ternary(){
   Node *n = expr();
+  if(consume('?')){
+    Node* if_node = new_node(ND_IF, NULL, NULL);
+    if_node->cond = n;
+    if_node->then = ternary();
+    expect(':');
+    if_node->els = ternary();
+    return if_node;
+  }else{
+    return n;
+  }
+}
+
+Node *assign(){
+  Node *n = ternary();
   for(;;){
     if(consume('=')){
       n = new_node('=', n, assign());

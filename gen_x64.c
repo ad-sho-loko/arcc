@@ -93,23 +93,24 @@ void gen(Node *node){
     // Env *e = new_env(lcnt);
     // stack_push(env_stack, e);
     
-    printf("%s:\n", new_label("then", lcnt));
     if(node->els != NULL){
       outf("jne %s", new_label("else", lcnt));
     }else{
       outf("jne %s", new_label("end", lcnt));
     }
 
+    // then
+    // printf("%s:\n", new_label("then", lcnt));
     gen(node->then);
-    // e = stack_pop(env_stack);
+    outf("jmp %s", new_label("end", lcnt));
     
+    // e = stack_pop(env_stack);
     if(node->els != NULL){
       printf("%s:\n", new_label("else", lcnt));
       gen(node->els);
-      outf("jmp %s\n", new_label("end", lcnt));      
     }
     printf("%s:\n", new_label("end", lcnt));
-    out("push rax");
+    // out("push rax");
     return;
   }
 
@@ -280,6 +281,27 @@ void gen(Node *node){
     out("push rax");
     return ;
   }
+
+  if(node->ty == ND_OR){
+    // todo : refactoring.
+    gen(node->lhs);
+    out("cmp rax, 1");
+    char *_true = new_label("or_true", next_label);
+    char *_false = new_label("or_false", next_label);
+    char *end = new_label("or_end", next_label);
+    next_label++;
+    outf("je %s", _true);
+    gen(node->rhs);
+    out("cmp rax, 1");
+    outf("jne %s", _false);
+    printf("%s:\n", _true);
+    out("push 1"); // true
+    outf("jmp %s", end);
+    printf("%s:\n", _false);
+    out("push 0"); // false
+    printf("%s:\n", end);
+    return;
+  }
   
   gen(node->lhs);
   gen(node->rhs);
@@ -340,23 +362,6 @@ void gen(Node *node){
     printf("%s:\n", _false);
     out("mov rax, 0"); // false
     printf("%s:\n", end);
-    break;
-  case ND_OR:
-    // todo : refactoring.
-    out("cmp rax, 1");
-    char *_true = new_label("or_true", next_label);
-    char *_false2 = new_label("or_false", next_label);
-    char *end2 = new_label("or_end", next_label);
-    next_label++;
-    outf("je %s", _true);
-    out("cmp rdi, 1");
-    outf("jne %s", _false2);
-    printf("%s:\n", _true);
-    out("mov rax, 1"); // true
-    outf("jmp %s", end2);
-    printf("%s:\n", _false2);    
-    out("mov rax, 0"); // false
-    printf("%s:\n", end2);
     break;
   case '&':
     // 3 & 1 
