@@ -168,12 +168,6 @@ Node* term(){
     Type *type = ((Token*)(tokens->data[pos]))->type;
     expect(TK_TYPE);
 
-    /*
-    if(((Token*)(tokens->data[pos]))->ty != TK_IDENT){
-      error("parse.c : Line %d \n  型宣言のあとは変数でなければいけません", __LINE__);
-    }
-    */
-
     // 同じ変数名の宣言はエラー
     Token *t = ((Token*)(tokens->data[pos]));
     if(map_contains(local_env, t->name)){
@@ -230,13 +224,12 @@ Node* term(){
 
 Node* unary(){
   if(consume(TK_INC)){
-    // [HERE] ++a -> a = a + 1;
-    // [NOT] a++;
+    // ++a -> a = a + 1;
     assume(TK_IDENT);
     Node *ident = term();
     return new_node('=', ident, new_node('+', ident, new_node_num(1)));
   }else if(consume(TK_DEC)){
-    // [HERE] --a -> a = a - 1;
+    // --a -> a = a - 1;
     assume(TK_IDENT);
     Node *ident = term();
     return new_node('=', ident, new_node('-', ident, new_node_num(1)));

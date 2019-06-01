@@ -100,7 +100,6 @@ void gen(Node *node){
     }
 
     // then
-    // printf("%s:\n", new_label("then", lcnt));
     gen(node->then);
     outf("jmp %s", new_label("end", lcnt));
     
