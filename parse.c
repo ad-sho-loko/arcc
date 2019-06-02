@@ -1,3 +1,4 @@
+
 #include <stdio.h>
 #include <stdarg.h>
 #include "arcc.h"
@@ -102,6 +103,15 @@ void expect2(int ty, char *fmt, ...){
     exit(1);
   }
   next();
+}
+
+static int get_type_sizeof(int type){
+  switch(type){
+  case INT: return 4;
+  case PTR : return 8;
+  }
+  error("No such a type.");
+  return 0;
 }
 
 static int get_sizeof(Node *n){
@@ -242,12 +252,28 @@ Node* unary(){
   }else if(consume('~')){
     return new_node('~', term(), NULL);
   }else if(consume(TK_SIZEOF)){
+    // todo : refacotirng.
+    Node *n;
     if(consume('(')){
-      Node *n = unary();
+      Token *t = ((Token*)(tokens->data[pos]));
+      if(t->ty == TK_TYPE){
+        n = new_node_num(get_type_sizeof(t->type->ty));
+        expect(TK_TYPE);
+      }else{
+        n = unary();  
+      }
       expect2(')', "parse.c : Line.%d\n  ERROR : sizeofの括弧が閉じられていません ", __LINE__);
       return new_node_num(get_sizeof(n));
     }
-    return new_node_num(get_sizeof(unary()));
+
+    Token *t = ((Token*)(tokens->data[pos]));
+    if(t->ty == TK_TYPE){
+      n = new_node_num(get_type_sizeof(t->type->ty));
+      expect(TK_TYPE);
+    }else{
+      n = unary();
+    }
+    return new_node_num(get_sizeof(n));
   }
   return term();
 }
