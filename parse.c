@@ -1,4 +1,3 @@
-
 #include <stdio.h>
 #include <stdarg.h>
 #include "arcc.h"
@@ -6,7 +5,12 @@
 static int pos = 0;
 static Map *local_env;
 
-Var *new_var(Type *type, char* name, int pos){
+static void init_local_env(char *func_name){
+  local_env = new_map();
+  map_putm(global_env, func_name, local_env);
+}
+
+static Var *new_var(Type *type, char* name, int pos){
   Var *v = malloc(sizeof(Var));
   v->type = type;
   v->pos = pos;
@@ -14,7 +18,7 @@ Var *new_var(Type *type, char* name, int pos){
   return v;
 }
 
-Node *new_node(int ty, Node *lhs, Node *rhs){
+static Node *new_node(int ty, Node *lhs, Node *rhs){
   Node* n = malloc(sizeof(Node));
   n->ty = ty;
   n->lhs = lhs;
@@ -22,21 +26,29 @@ Node *new_node(int ty, Node *lhs, Node *rhs){
   return n;
 }
 
-Node *new_node_ptr(int cnt){
+static Node *new_node_ptr(int cnt, char* name){
   Node* n = malloc(sizeof(Node));
   n->ty = ND_PTR;
   n->cnt = cnt;
+  n->name = name;
   return n;
 }
 
-Node *new_node_num(int val){
+static Node *new_node_adr(char* name){
+  Node* n = malloc(sizeof(Node));
+  n->ty = ND_ADR;
+  n->name = name;
+  return n;
+}
+
+static Node *new_node_num(int val){
   Node* n = malloc(sizeof(Node));
   n->ty = ND_NUM;
   n->val = val;
   return n;
 }
 
-Node *new_node_init_ident(Type* type, char* name){
+static Node *new_node_init_ident(Type* type, char* name){
   Node *n = malloc(sizeof(Node));
   n->ty = ND_IDENT;
   n->name = name;
@@ -44,14 +56,14 @@ Node *new_node_init_ident(Type* type, char* name){
   return n;
 }
 
-Node *new_node_ident(char* name){
+static Node *new_node_ident(char* name){
   Node *n = malloc(sizeof(Node));
   n->ty = ND_IDENT;
   n->name = name;
   return n;
 }
 
-Node *new_node_func(char* name){
+static Node *new_node_call_func(char* name){
   Node *n = malloc(sizeof(Node));
   n->ty = ND_FUNC;
   n->name = name;
@@ -59,12 +71,16 @@ Node *new_node_func(char* name){
   return n;
 }
 
-Node *new_node_declare_func(char *name){
+static Node *new_node_declare_func(char *name){
   Node *n = malloc(sizeof(Node));
   n->ty = ND_DEC_FUNC;
   n->arg_num = 0;
   n->name = name;
   return n;
+}
+
+static Token* tkn(){
+  return ((Token*)(tokens->data[pos]));
 }
 
 static void next(){
@@ -93,7 +109,7 @@ void expect(int ty){
   next();
 }
 
-void expect2(int ty, char *fmt, ...){
+Token *expect2(int ty, char *fmt, ...){
   int actual = ((Token*)(tokens->data[pos]))->ty;
   if(actual != ty){
     va_list ap;
@@ -102,7 +118,9 @@ void expect2(int ty, char *fmt, ...){
     fprintf(stderr, "\n");
     exit(1);
   }
+  Token *t = ((Token*)(tokens->data[pos]));
   next();
+  return t;
 }
 
 static int get_type_sizeof(int type){
@@ -132,7 +150,7 @@ static int get_sizeof(Node *n){
 Node* ident(Token *tkn){
   // WHEN calling function comes...
   if(consume('(')){
-    Node *n = new_node_func(tkn->name);
+    Node *n = new_node_call_func(tkn->name);
     n->items = new_vector();
     while(((Token*)(tokens->data[pos]))->ty != ')'){
       push_back(n->items, equality());
@@ -178,27 +196,32 @@ Node* term(){
     Type *type = ((Token*)(tokens->data[pos]))->type;
     expect(TK_TYPE);
 
-    // 同じ変数名の宣言はエラー
     Token *t = ((Token*)(tokens->data[pos]));
     if(map_contains(local_env, t->name)){
       error("parse.c : Line %d \n  ERROR: name '%s' is already defined. ", __LINE__, t->name);
     }
 
+    /** Array **      
+    if(consume('[')){
+      Type *t = new_array_type();
+      assume(TK_NUM);
+      int n; 
+      expect2(']', "parse.c : Line %d \n ERROR: An array must be closed.", __LINE__);
+    }
+    */
+    
     Node *n = new_node_init_ident(type, t->name);
     expect(TK_IDENT);
     return n;
   }
 
   if(consume(TK_ADR)){
-    Token *t = ((Token*)(tokens->data[pos]));
-    expect2(TK_IDENT, "parse.c : Line %d \n ERROR : アンパサンドのあとは必ず変数です", __LINE__);
+    Token *t = expect2(TK_IDENT, "parse.c : Line %d \n ERROR : アンパサンドのあとは必ず変数です", __LINE__);
 
     if(!map_contains(local_env, t->name)){
       error("parse.c : Line %d \n  ERROR: name '%s' is not defined. ", __LINE__, t->name);
     }
-    Node *n = new_node(ND_ADR, NULL, NULL);
-    n->name = t->name;
-    return n;
+    return new_node_adr(t->name);
   }
 
   if(consume(TK_PTR)){
@@ -207,15 +230,12 @@ Node* term(){
       cnt++;
     }
     
-    Token *t = ((Token*)(tokens->data[pos]));
-    expect2(TK_IDENT, "parse.c : Line %d \n ERROR : ポインタのあとは必ず変数です", __LINE__);
-
+    Token *t = expect2(TK_IDENT, "parse.c : Line %d \n ERROR : ポインタのあとは必ず変数です", __LINE__);
     if(!map_contains(local_env, t->name)){
       error("parse.c : Line %d \n  ERROR: name '%s' is not defined. ", __LINE__, t->name);
     }
     
-    Node *n = new_node_ptr(cnt);
-    n->name = t->name;
+    Node *n = new_node_ptr(cnt, t->name);
     return n;
   }
 
@@ -506,20 +526,9 @@ Node *stmt(){
   return n;
 }
 
-void func_body(){
-  while(((Token*)tokens->data[pos])->ty != '}'){
-    push_back(nodes, stmt());
-  }
-}
-
-void init_local_env(char *func_name){
-  local_env = new_map();
-  map_putm(global_env, func_name, local_env);
-}
-
-static void walk(Node *n){
-  if(n->lhs != NULL) walk(n->lhs);
-  if(n->rhs != NULL) walk(n->rhs);
+static void opt(Node *n){
+  if(n->lhs != NULL) opt(n->lhs);
+  if(n->rhs != NULL) opt(n->rhs);
 
   // ポインタの加減算を調整するためだけ....
   // TODO: 左にしかポインタおけない
@@ -535,6 +544,10 @@ static void walk(Node *n){
         case PTR:
           n->rhs->val = n->rhs->val * sizeof(int*);
           break;
+        case ARRAY:
+          // TODO
+          n->rhs->val = n->rhs->val * sizeof(int*);
+          break;
         } else if(v->type->ty == INT){
           // nop
       }
@@ -542,38 +555,33 @@ static void walk(Node *n){
   }
 }
 
-void post_parse(){
+void walk_nodes(){
   for(int i=0; i< nodes->len; i++){
-    walk(nodes->data[i]);
+    opt(nodes->data[i]);
   }
 }
 
-void toplevel(){
-  while(((Token*)tokens->data[pos])->ty != TK_EOF){
-    // return-type
-    if(!consume(TK_TYPE)){
-      error("Line.%d in parse.c : 関数の宣言は型から始める必要があります", __LINE__);
-    }
+void func_body(){
+  while(((Token*)tokens->data[pos])->ty != '}'){
+    push_back(nodes, stmt());
+  }
+}
 
-    Token *t = ((Token*)tokens->data[pos]);
-    // function-name
-    if(!consume(TK_IDENT)){
-      error("Line.%d in parse.c : 関数の宣言から始める必要があります", __LINE__);
-    }
-    
-    char *func_name = t->name;
-    Node *n = new_node_declare_func(func_name);
+void func(){
+    // A return type
+    expect2(TK_TYPE, "Line.%d in parse.c : 関数の宣言は型から始める必要があります", __LINE__);
+
+    // A function name
+    Token *t = expect2(TK_IDENT, "Line.%d in parse.c : 関数の宣言から始める必要があります", __LINE__);
+    Node *n = new_node_declare_func(t->name);
     push_back(nodes, n);
     
-    // init. (set a local environment)
+    // Initialize (set a local environment)
     init_local_env(t->name);
     
-    // args.
+    // Dummy Arguments
     expect('(');
     while(((Token*)tokens->data[pos])->ty != ')'){
-      // if(!consume(TK_TYPE)){
-      //  error("Line.%d in parse.c : 仮引数は型から始める必要があります", __LINE__);
-      // }
       assume(TK_TYPE);
       term();
       consume(',');
@@ -582,12 +590,21 @@ void toplevel(){
     }
     expect(')');
 
-    // function-body.
+    // A function body
     expect('{');
     func_body();
     expect('}');    
-    push_back(nodes, new_node(ND_FUNC_END, NULL, NULL));
+    push_back(nodes, new_node(ND_FUNC_END, NULL, NULL));  
+}
+
+void toplevel(){
+  while(tkn()->ty != TK_EOF){
+    func();
+    // NEXT : struct(union)
+    // NEXT : global variables
+    // NEXT : macro
   }
-  // todo : Node構築後の作業
-  post_parse();
+
+  // todo : Node構築後の作業 : ポインタの加減を調整する.
+  walk_nodes();
 }

@@ -6,7 +6,7 @@
 Vector *tokens;
 static int pos;
 
-static bool is_var_leading(char ch){
+static bool valid_leading(char ch){
   return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || (ch == '_');  
 }
 
@@ -87,6 +87,11 @@ static bool is_type_token(){
   return ((Token*)(tokens->data[pos]))->ty == TK_TYPE && ( pos+1 < tokens->len && ((Token*)(tokens->data[pos+1]))->ty == TK_PTR);
 }
 
+static bool keyword(char* p, char* word){
+  int len = strlen(word);
+  return strncmp(p, word, len) == 0 && !is_alnum(p[len]);
+}
+
 // spec: int **x => type -> ptr -> ptr -> int -> NULL
 static Vector *pointernized(){
   Vector* v = new_vector();
@@ -159,7 +164,6 @@ Vector *tokenize(char *p){
       continue;
     }    
 
-
     if(*p == '>' && *(p+1) == '>'){
       push_back(tokens, new_token_op(TK_RSHIFT, ">>"));
       p+=2;
@@ -227,21 +231,20 @@ Vector *tokenize(char *p){
     }    
     
     // pointer
-    if(*p == '*' && (is_var_leading(*(p+1)) || *(p+1) == '*')){
+    if(*p == '*' && (valid_leading(*(p+1)) || *(p+1) == '*')){
       push_back(tokens, new_token(TK_PTR, "*", 0));
       p+=1;
       continue;
     }
 
     // reference
-    if(*p == '&' && is_var_leading(*(p+1))){
+    if(*p == '&' && valid_leading(*(p+1))){
       push_back(tokens, new_token(TK_ADR, "&", 0));
       p+=1;
       continue;
     }
     
-    
-    if(*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' || *p == ')' || *p == '<' || *p == '>' || *p == ';' || *p == '=' || *p == '{' || *p == '}' || *p == ',' || *p == '%' || *p == '&' || *p == '|' || *p == '^' || *p == '~' || *p == '?' || *p == ':'){
+    if(*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' || *p == ')' || *p == '<' || *p == '>' || *p == ';' || *p == '=' || *p == '{' || *p == '}' || *p == ',' || *p == '%' || *p == '&' || *p == '|' || *p == '^' || *p == '~' || *p == '?' || *p == ':' || *p == '[' || *p == ']'){
       push_back(tokens, new_token(*p, p, 0));
       p++;
       continue;
@@ -252,72 +255,70 @@ Vector *tokenize(char *p){
       continue;
     }
 
-    if(strncmp(p, "return", 6) == 0 && !is_alnum(p[6])){
+    if(keyword(p, "return")){
       push_back(tokens, new_token_reserved(TK_RETURN, p));
       p+=6;
       continue;
     }
 
-    if(strncmp(p, "if", 2) == 0 && !is_alnum(p[2])){
+    if(keyword(p, "if")){
       push_back(tokens, new_token_reserved(TK_IF, p));
       p+=2;
       continue;
     }
 
-    if(strncmp(p, "else if", 7) == 0 && !is_alnum(p[7])){
+    if(keyword(p, "else if")){
       push_back(tokens, new_token_reserved(TK_ELSE_IF, p));
       p+=7;
       continue;
     }
     
-    if(strncmp(p, "else", 4) == 0 && !is_alnum(p[4])){
+    if(keyword(p, "else")){
       push_back(tokens, new_token_reserved(TK_ELSE, p));
       p+=4;
       continue;
     }
 
-    if(strncmp(p, "while", 5) == 0 && !is_alnum(p[5])){
+    if(keyword(p, "while")){
       push_back(tokens, new_token_reserved(TK_WHILE, p));
       p+=5;
       continue;
     }    
 
-    if(strncmp(p, "for", 3) == 0 && !is_alnum(p[3])){
+    if(keyword(p, "for")){
       push_back(tokens, new_token_reserved(TK_FOR, p));
       p+=3;
       continue;
     }    
 
-    if(strncmp(p, "break", 5) == 0 && !is_alnum(p[5])){
+    if(keyword(p, "break")){
       push_back(tokens, new_token_reserved(TK_BREAK, p));
       p+=5;
       continue;
     }    
 
-    if(strncmp(p, "continue", 8) == 0 && !is_alnum(p[8])){
+    if(keyword(p, "continue")){
       push_back(tokens, new_token_reserved(TK_CONTINUE, p));
       p+=8;
       continue;
     }    
 
-    if(strncmp(p, "int", 3) == 0 && !is_alnum(p[3])){
+    if(keyword(p, "int")){
       push_back(tokens, new_token_type(INT, p));
       p+=3;
       continue;
     }    
     
-    if(strncmp(p, "sizeof", 6) == 0 && !is_alnum(p[6])){
+    if(keyword(p, "sizeof")){
       push_back(tokens, new_token_reserved(TK_SIZEOF, p));
       p+=6;
       continue;
     }    
     
-    // 変数
-    if(is_var_leading(*p)){
-      int len = 1;
-      while(is_alnum(*(p+len))){
-        len++;
-      }
+    // A variable
+    if(valid_leading(*p)){
+      int len;
+      for(len =1; is_alnum(*(p+len)); len++){ }
       char *ident = strndup(p, len);
       push_back(tokens, new_token_ident(ident, p));
       p+=len;

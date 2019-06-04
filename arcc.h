@@ -68,8 +68,9 @@ enum{
 };
 
 typedef struct Type{
-  enum {INT, PTR} ty;
+  enum {INT, PTR, ARRAY} ty;
   struct Type *ptr_of;
+  int array_size;
 }Type;
 
 // A variable-length array.
