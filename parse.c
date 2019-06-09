@@ -56,10 +56,26 @@ static Node *new_node_init_ident(Type* type, char* name){
   return n;
 }
 
+static Node *new_node_ident_array(char* name, int i){
+  Node *n = malloc(sizeof(Node));
+  n->ty = ND_IDENT;
+  n->name = name;
+  n->val = i;
+  return n;
+}
+
 static Node *new_node_ident(char* name){
   Node *n = malloc(sizeof(Node));
   n->ty = ND_IDENT;
   n->name = name;
+  return n;
+}
+
+static Node *new_array_type(Type *type, char *name, int size){
+  Node *n = malloc(sizeof(Node));
+  n->ty = ND_IDENT;
+  n->name = name;
+  map_putv(local_env, name, new_var(type, name, (map_len(local_env) + 1) * 8 * size));
   return n;
 }
 
@@ -164,8 +180,17 @@ Node* ident(Token *tkn){
   if(!map_contains(local_env, tkn->name)){
     error("parse.c : Line %d \n  ERROR: name '%s' is not defined. ", __LINE__, tkn->name);
   }
+
+
+  Node *n;
+  if(consume('[')){
+    int i = expect2(TK_NUM, "", __LINE__)->val;
+    n = new_node_ident_array(tkn->name, i);
+    expect(']');
+  }else{
+    n = new_node_ident(tkn->name);
+  }
   
-  Node *n = new_node_ident(tkn->name);
   // 優先度TOPの演算子の処理
   if(consume(TK_INC)){
     // a++ -> a; a+=1;
@@ -200,18 +225,17 @@ Node* term(){
     if(map_contains(local_env, t->name)){
       error("parse.c : Line %d \n  ERROR: name '%s' is already defined. ", __LINE__, t->name);
     }
+    expect(TK_IDENT);
 
-    /** Array **      
+    /** Array **/
     if(consume('[')){
-      Type *t = new_array_type();
-      assume(TK_NUM);
-      int n; 
+      Token *n_tk = expect2(TK_NUM, "parse.c : Line %d \n ERROR : A inner of array must be a number.", __LINE__);
+      Node *n = new_array_type(type, t->name, n_tk->val);
       expect2(']', "parse.c : Line %d \n ERROR: An array must be closed.", __LINE__);
+      return n;
     }
-    */
     
     Node *n = new_node_init_ident(type, t->name);
-    expect(TK_IDENT);
     return n;
   }
 
