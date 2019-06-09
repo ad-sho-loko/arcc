@@ -218,6 +218,9 @@ char* stringfy_token(int tkn_kind){
   case 286: return "TK_LSHIFT_EQ";
   case 287: return "TK_RSHIFT_EQ";
   case 288: return "TK_SIZEOF";
+  case 289: return "TK_AND_EQ";
+  case 290: return "TK_OR_EQ";
+  case 291: return "TK_XOR_EQ";
   default: return "Unknown";
   }
 }

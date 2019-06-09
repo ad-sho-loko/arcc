@@ -229,6 +229,24 @@ Vector *tokenize(char *p){
       p+=2;
       continue;
     }    
+
+    if(*p == '&' && *(p+1) == '='){
+      push_back(tokens, new_token_op(TK_AND_EQ, "&="));
+      p+=2;
+      continue;
+    }    
+    
+    if(*p == '|' && *(p+1) == '='){
+      push_back(tokens, new_token_op(TK_OR_EQ, "|="));
+      p+=2;
+      continue;
+    }    
+
+    if(*p == '^' && *(p+1) == '='){
+      push_back(tokens, new_token_op(TK_XOR_EQ, "^="));
+      p+=2;
+      continue;
+    }    
     
     // pointer
     if(*p == '*' && (valid_leading(*(p+1)) || *(p+1) == '*')){

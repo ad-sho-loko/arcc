@@ -33,7 +33,10 @@ enum{
   TK_RSHIFT,
   TK_LSHIFT_EQ,
   TK_RSHIFT_EQ,
-  TK_SIZEOF
+  TK_SIZEOF,
+  TK_AND_EQ,
+  TK_OR_EQ,
+  TK_XOR_EQ
 };
 
 enum{
@@ -64,7 +67,7 @@ enum{
   ND_ADR,
   ND_TYPE,
   ND_LSHIFT,
-  ND_RSHIFT
+  ND_RSHIFT,
 };
 
 typedef struct Type{

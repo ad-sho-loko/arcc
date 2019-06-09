@@ -56,11 +56,11 @@ static Node *new_node_init_ident(Type* type, char* name){
   return n;
 }
 
-static Node *new_node_ident_array(char* name, int i){
+static Node *new_array_type(Type *type, char *name, int size){
   Node *n = malloc(sizeof(Node));
   n->ty = ND_IDENT;
   n->name = name;
-  n->val = i;
+  map_putv(local_env, name, new_var(type, name, (map_len(local_env) + 1) * 8 * size));
   return n;
 }
 
@@ -71,11 +71,11 @@ static Node *new_node_ident(char* name){
   return n;
 }
 
-static Node *new_array_type(Type *type, char *name, int size){
+static Node *new_node_ident_array(char* name, int i){
   Node *n = malloc(sizeof(Node));
   n->ty = ND_IDENT;
   n->name = name;
-  map_putv(local_env, name, new_var(type, name, (map_len(local_env) + 1) * 8 * size));
+  n->val = i;
   return n;
 }
 
@@ -180,7 +180,6 @@ Node* ident(Token *tkn){
   if(!map_contains(local_env, tkn->name)){
     error("parse.c : Line %d \n  ERROR: name '%s' is not defined. ", __LINE__, tkn->name);
   }
-
 
   Node *n;
   if(consume('[')){
@@ -441,8 +440,6 @@ Node *assign(){
     if(consume('=')){
       n = new_node('=', n, assign());
     }else if(consume(TK_PLUS_EQ)){
-      // a+=2; -> a = a + 2;
-      // [OK] a+=2; a+=a; [NG] 1+=1
       n = new_node('=', n, new_node('+', n, assign()));
     }else if(consume(TK_MINUS_EQ)){
       n = new_node('=', n, new_node('-', n, assign()));
@@ -456,6 +453,12 @@ Node *assign(){
       n = new_node('=', n, new_node(ND_LSHIFT, n, assign()));
     }else if(consume(TK_RSHIFT_EQ)){
       n = new_node('=', n, new_node(ND_RSHIFT, n, assign()));
+    }else if(consume(TK_AND_EQ)){
+      n = new_node('=', n, new_node('&', n, assign()));
+    }else if(consume(TK_OR_EQ)){
+      n = new_node('=', n, new_node('|', n, assign()));
+    }else if(consume(TK_XOR_EQ)){
+      n = new_node('=', n, new_node('^', n, assign()));
     }else{
       return n;
     }
@@ -566,10 +569,6 @@ static void opt(Node *n){
           n->rhs->val = n->rhs->val * sizeof(int);
           break;
         case PTR:
-          n->rhs->val = n->rhs->val * sizeof(int*);
-          break;
-        case ARRAY:
-          // TODO
           n->rhs->val = n->rhs->val * sizeof(int*);
           break;
         } else if(v->type->ty == INT){
