@@ -497,6 +497,17 @@ Node *if_stmt(){
   return n;
 }
 
+Node *do_while_stmt(){
+  Node *n = new_node(ND_DO_WHILE, NULL,  NULL);
+  n->then = block();
+  expect(TK_WHILE);
+  expect('(');
+  n->cond = expr();
+  expect(')');
+  expect(';');
+  return n;
+}
+
 Node *while_stmt(){
   expect('(');
   Node *n = new_node(ND_WHILE, NULL, NULL);
@@ -540,6 +551,8 @@ Node *stmt(){
     n = while_stmt();
   }else if(consume(TK_FOR)){
     n = for_stmt();
+  }else if(consume(TK_DO)){
+    n = do_while_stmt();
   }else if(consume(TK_BREAK)){
     n = new_node(ND_BREAK, NULL, NULL);
     expect(';');

@@ -331,7 +331,13 @@ Vector *tokenize(char *p){
       push_back(tokens, new_token_reserved(TK_SIZEOF, p));
       p+=6;
       continue;
-    }    
+    }
+
+    if(keyword(p, "do")){
+      push_back(tokens, new_token_reserved(TK_DO, p));
+      p+=2;
+      continue;
+    }
     
     // A variable
     if(valid_leading(*p)){

@@ -36,7 +36,8 @@ enum{
   TK_SIZEOF,
   TK_AND_EQ,
   TK_OR_EQ,
-  TK_XOR_EQ
+  TK_XOR_EQ,
+  TK_DO
 };
 
 enum{
@@ -68,6 +69,7 @@ enum{
   ND_TYPE,
   ND_LSHIFT,
   ND_RSHIFT,
+  ND_DO_WHILE,
 };
 
 typedef struct Type{

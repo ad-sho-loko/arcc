@@ -113,7 +113,6 @@ void gen(Node *node){
   }
 
   if(node->ty == ND_WHILE){
-
     Env *e = new_env(next_label);
     next_label++;
 
@@ -129,6 +128,20 @@ void gen(Node *node){
     e = stack_pop(env_stack);
     outf("jmp %s", e->start);
     printf("%s:\n", e->end);
+    return;
+  }
+
+  if(node->ty == ND_DO_WHILE){
+    Env *e = new_env(next_label);
+    next_label++;
+    stack_push(env_stack, e);
+    printf("%s:\n", e->start);
+    gen(node->then);
+    gen(node->cond);
+    out("pop rax");
+    out("cmp rax, 1");
+    outf("je %s", e->start);
+    e = stack_pop(env_stack);
     return;
   }
 
