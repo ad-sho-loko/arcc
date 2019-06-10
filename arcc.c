@@ -28,5 +28,6 @@ int main(int argc, char **argv) {
 
   // generate x64
   gen_top();
+  printd("===== A COMPILE FINISHED =====");
   return 0;  
 }

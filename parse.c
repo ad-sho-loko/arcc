@@ -52,7 +52,8 @@ static Node *new_node_init_ident(Type* type, char* name){
   Node *n = malloc(sizeof(Node));
   n->ty = ND_IDENT;
   n->name = name;
-  map_putv(local_env, name, new_var(type, name, (map_len(local_env) + 1) * 8));
+  // todo : 型のサイズによって変える
+  map_putv(local_env, name, new_var(type, name, 8));
   return n;
 }
 
@@ -60,7 +61,8 @@ static Node *new_array_type(Type *type, char *name, int size){
   Node *n = malloc(sizeof(Node));
   n->ty = ND_IDENT;
   n->name = name;
-  map_putv(local_env, name, new_var(type, name, (map_len(local_env) + 1) * 8 * size));
+  // todo : 型のサイズによって変える
+  map_putv(local_env, name, new_var(type, name, 8 * size));
   return n;
 }
 
@@ -234,8 +236,7 @@ Node* term(){
       return n;
     }
     
-    Node *n = new_node_init_ident(type, t->name);
-    return n;
+    return new_node_init_ident(type, t->name);
   }
 
   if(consume(TK_ADR)){
@@ -258,8 +259,7 @@ Node* term(){
       error("parse.c : Line %d \n  ERROR: name '%s' is not defined. ", __LINE__, t->name);
     }
     
-    Node *n = new_node_ptr(cnt, t->name);
-    return n;
+    return new_node_ptr(cnt, t->name);
   }
 
   Token *tkn = ((Token*)(tokens->data[pos]));

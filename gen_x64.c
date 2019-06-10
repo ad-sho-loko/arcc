@@ -31,6 +31,15 @@ static Env *new_env(int n){
   return e;
 }
 
+static int env_size(){
+  int sum = 0;
+  int len = now_env->values->len;
+  for(int i=0; i<len; i++){
+    sum += ((Var*)(now_env->values->data[i]))->pos;
+  }
+  return sum;
+}
+
 static Stack *env_stack;
 static char *regs[2] = {"rdi", "rsi"};
 
@@ -52,8 +61,8 @@ void gen_top(){
       printf("%s:\n",n->name);
       out("push rbp");
       out("mov rbp, rsp");
-      outf("sub rsp, %d", do_align((map_len(now_env)) * 8, 8));
-
+      outf("sub rsp, %d", do_align(env_size(), 8));
+      
       // todo : only two args.
       for(int i=0; i < n->arg_num; i++){
         outf("mov [rbp-%d], %s", (i+1)*8, regs[i]);
@@ -73,10 +82,23 @@ void gen_top(){
 }
 
 void gen_lval(Node *node){
-  if(node->ty != ND_IDENT)
-    error("Line.%d in gen.c : 左辺は変数でなければいけません", __LINE__);
+  if(node->ty != ND_IDENT && node->ty != ND_PTR)
+    error("Line.%d in gen_x64.c : 左辺は変数（ポインタ）でなければいけません", __LINE__);
 
-  int offset = map_getv(now_env, node->name)->pos;
+  // ND_PTR
+  // TODO : gen()のND_PTRのただのコピペ.
+  if(node->ty == ND_PTR){
+    int offset = map_getv(now_env, node->name)->pos * (map_indexOf(now_env, node->name) + 1);
+    printf("  mov rax, [rbp-%d]\n", offset);
+    for(int i=1; i < node->cnt; i++){
+      out("mov rax, [rax]");
+    }
+    out("push rax");
+    return;
+  }
+
+  // ND_IDENT
+  int offset = map_getv(now_env, node->name)->pos * (map_indexOf(now_env, node->name) + 1);
   out("mov rax, rbp");
   outf("sub rax, %d", offset);
   out("push rax");
@@ -89,7 +111,7 @@ void gen(Node *node){
     out("cmp rax, 1");
 
     int lcnt = next_label++;
-    // todo : refactoring
+    // todo : refactoring. 下を使う.
     // Env *e = new_env(lcnt);
     // stack_push(env_stack, e);
     
@@ -201,19 +223,17 @@ void gen(Node *node){
 
   // &x
   if(node->ty == ND_ADR){
-    int offset = map_getv(now_env, node->name)->pos;
-    out("mov rax, rbp");
-    printf("  sub rax, %d\n", offset);
+    // TODO : OFFSETの計算が行けてなさすぎる
+    int offset = map_getv(now_env, node->name)->pos * (map_indexOf(now_env, node->name) + 1);
+    printf("  lea rax, [rbp-%d]\n", offset);
     out("push rax");
     return;
   }
 
   // *x **x ***x
   if(node->ty == ND_PTR){
-    int offset = map_getv(now_env, node->name)->pos;
-    out("mov rax, rbp");
-    printf("  sub rax, %d\n", offset);
-    out("mov rax, [rax]");
+    int offset = map_getv(now_env, node->name)->pos * (map_indexOf(now_env, node->name) + 1);
+    printf("  mov rax, [rbp-%d]\n", offset);
     for(int i=0; i < node->cnt; i++){
       out("mov rax, [rax]");
     }

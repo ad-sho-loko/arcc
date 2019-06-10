@@ -134,6 +134,15 @@ Var *map_getv(Map *m, char *key){
   return map_get(m, key);
 }
 
+int map_indexOf(Map *m, char *key){
+  for(int i=0; i<m->keys->len; i++){
+    if (strcmp(m->keys->data[i], key) == 0){
+      return i;
+    }
+  }
+  return -1;
+}
+
 void map_putm(Map *m, char *key, Map* value){
   map_put(m, key, value);
 }
