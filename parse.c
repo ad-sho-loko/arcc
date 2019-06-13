@@ -305,10 +305,10 @@ Node* unary(){
       Token *t = expect2(TK_TYPE, "parse.c : Line.%d\n ERROR : The program cannot reach here.", __LINE__);
       n = new_node_num(get_type_sizeof(t->type->ty));
     }else{
-      n = unary();
+      n = new_node_num(get_node_sizeof(unary()));
     }
     if(is_bracket) expect2(')', "parse.c : Line.%d\n  ERROR : sizeofの括弧が閉じられていません ", __LINE__);
-    return new_node_num(get_node_sizeof(n));
+    return n;
   }
   return term();
 }

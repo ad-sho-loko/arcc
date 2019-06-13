@@ -84,7 +84,9 @@ static int current_token_ty(){
 }
 
 static bool is_type_token(){
-  return ((Token*)(tokens->data[pos]))->ty == TK_TYPE && ( pos+1 < tokens->len && ((Token*)(tokens->data[pos+1]))->ty == TK_PTR);
+  // todo : refactor pointernized.
+  return ((Token*)(tokens->data[pos]))->ty == TK_TYPE && pos+1 < tokens->len
+    && (((Token*)(tokens->data[pos+1]))->ty == TK_PTR || ((Token*)(tokens->data[pos+1]))->ty == '*');
 }
 
 static bool keyword(char* p, char* word){
@@ -93,6 +95,7 @@ static bool keyword(char* p, char* word){
 }
 
 // spec: int **x => type -> ptr -> ptr -> int -> NULL
+// [todo] spec2:  int* => type -> ptr -> int -> NULL
 static Vector *pointernized(){
   Vector* v = new_vector();
   for(pos=0; pos<tokens->len; pos++){
@@ -102,7 +105,7 @@ static Vector *pointernized(){
       top->type = new_ptr();
       Type *now = top->type;
       pos++;
-      while(current_token_ty() == TK_PTR){
+      while(current_token_ty() == TK_PTR || current_token_ty() == '*'){
         now->ptr_of = new_ptr();
         now = now->ptr_of;
         pos++;
