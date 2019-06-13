@@ -114,6 +114,7 @@ typedef struct{
   Type *type;
   char* name;
   int pos;
+  int len;
 } Var;
 
 // methods for vector.
@@ -130,6 +131,8 @@ typedef struct{
 Map *new_map();
 Var *map_getv(Map* m, char *key);
 void map_putv(Map* m, char* key, Var* value);
+int map_geti(Map* m, char *key);
+void map_puti(Map* m, char* key, int value);
 Map *map_getm(Map* m, char *key);
 void map_putm(Map* m, char* key, Map* value);
 int map_indexOf(Map* m, char *key);

@@ -43,6 +43,15 @@ static Var *new_var(Type *type, char* name, int size){
   return v;
 }
 
+static Var *new_array_var(Type *type, char* name, int size, int len){
+  Var *v = malloc(sizeof(Var));
+  v->type = type;
+  v->pos = size;
+  v->len = len;
+  v->name = name;
+  return v;
+}
+
 static Node *new_node(int ty, Node *lhs, Node *rhs){
   Node* n = malloc(sizeof(Node));
   n->ty = ty;
@@ -86,15 +95,12 @@ static Node *new_node_dummy(){
 }
 
 static Node *new_node_init_ident(Type* type, char* name){
-  // todo : 型のサイズによって変える
-  map_putv(local_env, name, new_var(type, name, 8));
-  // map_putv(local_env, name, new_var(type, name, get_type_sizeof(type->ty)));
+  map_putv(local_env, name, new_var(type, name, get_type_sizeof(type->ty)));
   return new_node_dummy();
 }
 
 static Node *new_array_type(Type *type, char *name, int size){
-  // todo : 型のサイズによって変える
-  map_putv(local_env, name, new_var(type, name, 8 * size));
+  map_putv(local_env, name, new_array_var(type, name, get_type_sizeof(type->ty), size));
   return new_node_dummy();
 }
 
@@ -126,6 +132,7 @@ static Node *new_node_declare_func(char *name){
   n->ty = ND_DEC_FUNC;
   n->arg_num = 0;
   n->name = name;
+  n->items = new_vector();
   return n;
 }
 
@@ -613,7 +620,7 @@ void func(){
     expect('(');
     while(((Token*)tokens->data[pos])->ty != ')'){
       assume(TK_TYPE);
-      term();
+      push_back(n->items, term());
       consume(',');
       // todo : refine.
       n->arg_num++;

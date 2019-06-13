@@ -166,6 +166,14 @@ Map *map_getm(Map *m, char *key){
   return map_get(m, key);
 }
 
+int map_geti(Map *m, char *key){
+  return (intptr_t)map_get(m, key);
+}
+
+void map_puti(Map *m, char *key, int i){
+  map_put(m, key, (void*)(intptr_t)i);
+}
+
 int map_len(Map *m){
   return m->keys->len;
 }

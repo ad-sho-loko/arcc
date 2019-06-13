@@ -11,4 +11,4 @@ test: arcc
 		./test.sh
 
 clean:
-		rm -f arcc *.o *~ tmp* \#*
+		rm -f arcc *.o *~ tmp* \#* a.out

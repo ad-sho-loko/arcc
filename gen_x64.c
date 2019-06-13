@@ -2,8 +2,21 @@
 #include <string.h>
 #include "arcc.h"
 
+
 static int next_label = 1;
 static Map* now_env;
+static Map* var_table;
+
+Map* new_var_table(Map *env){
+  Map* m = new_map();
+  int offset = 0;
+  for(int i=0; i<env->values->len; i++){
+    Var *v = ((Var*)env->values->data[i]);
+    offset+=v->pos;
+    map_puti(m, v->name, offset);
+  }
+  return m;
+}
 
 typedef struct Env{
   int n;
@@ -41,7 +54,18 @@ static int env_size(){
 }
 
 static Stack *env_stack;
+
+
+// todo : refactoring.
 static char *regs[2] = {"rdi", "rsi"};
+
+static char *reg[2][9] = {
+  /* 1st  */ {"","","","","edi","","","","rdi",},
+  /* 2nd */  {"","","","","esi","","","","rsi",}
+};
+
+static char *bit[9] = {"","BYTE PTR","","","DWORD PTR","","","","QWORD PTR"};
+static char *sreg[9] = {"","","","","edi","","","","rdi"};
 
 // TODO : 出力にコメントをつける
 void gen_top(){
@@ -57,21 +81,23 @@ void gen_top(){
       // prologue
       Node *n = (Node*)nodes->data[i];
       now_env = map_getm(global_env, n->name);
+      var_table = new_var_table(now_env);
 
       printf("%s:\n",n->name);
       out("push rbp");
       out("mov rbp, rsp");
-      outf("sub rsp, %d", do_align(env_size(), 8));
-      
-      // todo : only two args.
+      outf("sub rsp, %d", do_align(env_size(), 16));
+
+      // args
       for(int i=0; i < n->arg_num; i++){
-        outf("mov [rbp-%d], %s", (i+1)*8, regs[i]);
+        char *key = now_env->keys->data[i];
+        Var* v = map_getv(now_env, key);
+        outf("mov %s [rbp-%d], %s", bit[v->pos] , (i+1) * v->pos, reg[i][v->pos]);
       }
     }else if(((Node*)nodes->data[i])->ty == ND_FUNC_END){
       // epiogue
       outd("epiogue");
-      out("mov rsp, rbp");
-      out("pop rbp");
+      out("leave");
       out("ret");
     }else{
       // body
@@ -85,10 +111,9 @@ void gen_lval(Node *node){
   if(node->ty != ND_IDENT && node->ty != ND_PTR)
     error("Line.%d in gen_x64.c : 左辺は変数（ポインタ）でなければいけません", __LINE__);
 
-  // ND_PTR
-  // TODO : gen()のND_PTRのただのコピペ.
+  // ND_PTR TODO : gen()のND_PTRのただのコピペ.
   if(node->ty == ND_PTR){
-    int offset = map_getv(now_env, node->name)->pos * (map_indexOf(now_env, node->name) + 1);
+    int offset = map_geti(var_table, node->name);
     printf("  mov rax, [rbp-%d]\n", offset);
     for(int i=1; i < node->cnt; i++){
       out("mov rax, [rax]");
@@ -98,7 +123,7 @@ void gen_lval(Node *node){
   }
 
   // ND_IDENT
-  int offset = map_getv(now_env, node->name)->pos * (map_indexOf(now_env, node->name) + 1);
+  int offset = map_geti(var_table, node->name);
   out("mov rax, rbp");
   outf("sub rax, %d", offset);
   out("push rax");
@@ -223,8 +248,8 @@ void gen(Node *node){
 
   // &x
   if(node->ty == ND_ADR){
-    // TODO : OFFSETの計算が行けてなさすぎる
-    int offset = map_getv(now_env, node->name)->pos * (map_indexOf(now_env, node->name) + 1);
+    int offset = map_geti(var_table, node->name);
+    // int offset = map_getv(now_env, node->name)->pos * (map_indexOf(now_env, node->name) + 1);
     printf("  lea rax, [rbp-%d]\n", offset);
     out("push rax");
     return;
@@ -232,7 +257,8 @@ void gen(Node *node){
 
   // *x **x ***x
   if(node->ty == ND_PTR){
-    int offset = map_getv(now_env, node->name)->pos * (map_indexOf(now_env, node->name) + 1);
+    int offset = map_geti(var_table, node->name);
+    // int offset = map_getv(now_env, node->name)->pos * (map_indexOf(now_env, node->name) + 1);
     printf("  mov rax, [rbp-%d]\n", offset);
     for(int i=0; i < node->cnt; i++){
       out("mov rax, [rax]");
@@ -254,7 +280,8 @@ void gen(Node *node){
     gen(node->rhs);
     out("pop rdi");
     out("pop rax");
-    out("mov [rax], rdi");
+    int size = map_getv(now_env, node->lhs->name)->pos;
+    outf("mov %s [rax], %s", bit[size], sreg[size]);
     out("push rdi");
     return;
   }
@@ -262,7 +289,12 @@ void gen(Node *node){
   if(node->ty == ND_IDENT){
     gen_lval(node);
     out("pop rax");
-    out("mov rax, [rax]");
+    int size = map_getv(now_env, node->name)->pos;
+    if(size == 8){
+      out("mov rax, [rax]");
+    }else{
+      outf("movsx rax, %s [rax]",  bit[size]);
+    }
     out("push rax");
     return;
   }
@@ -292,8 +324,7 @@ void gen(Node *node){
   if(node->ty == ND_RETURN){
     gen(node->lhs);
     out("pop rax");
-    out("mov rsp, rbp");
-    out("pop rbp");
+    out("leave");
     out("ret");
     return;
   }
@@ -307,11 +338,9 @@ void gen(Node *node){
         outf("pop %s", regs[i]);
       }
     }
-
-    // TODO : align 16 byte.
     outf("call %s", node->name);
     out("push rax");
-    return ;
+    return;
   }
 
   if(node->ty == ND_OR){
