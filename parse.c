@@ -3,35 +3,21 @@
 #include "arcc.h"
 
 static int pos = 0;
-static Map *local_env;
+static Map *local_scope;
 
-static void init_local_env(char *func_name){
-  local_env = new_map();
+static void init_local_scope(char *func_name){
+  local_scope = new_map();
   // todo : funcのかぶりvalidation
-  map_putm(global_env, func_name, local_env);
+  map_putm(global_env, func_name, local_scope);
 }
 
-static int get_type_sizeof(int type){
-  switch(type){
+static int get_type_sizeof(Type *type){
+  switch(type->ty){
   case INT: return 4;
   case PTR : return 8;
+  case ARRAY: return type->array_size * get_type_sizeof(type->ptr_of);
   }
   error("parse.c : Line.%d\n  ERROR :No such a type.");
-  return 0;
-}
-
-static int get_node_sizeof(Node *n){
-  if(n->ty == ND_NUM){
-    return 4;
-  }
-
-  if(n->ty == ND_IDENT){
-    Var *var = map_getv(local_env, n->name);
-    if(var->type->ty == INT) return 4;
-    if(var->type->ty == PTR) return 8;
-  }
-
-  error("parse.c : Line.%d\n ERROR : cannnot get sizeof %c", __LINE__, n->ty);
   return 0;
 }
 
@@ -39,15 +25,6 @@ static Var *new_var(Type *type, char* name, int size){
   Var *v = malloc(sizeof(Var));
   v->type = type;
   v->pos = size;
-  v->name = name;
-  return v;
-}
-
-static Var *new_array_var(Type *type, char* name, int size, int len){
-  Var *v = malloc(sizeof(Var));
-  v->type = type;
-  v->pos = size;
-  v->len = len;
   v->name = name;
   return v;
 }
@@ -66,9 +43,16 @@ static Node *new_node_empty(int ty){
   return n;
 }
 
+static Node *new_node_ident(char* name){
+  Node *n = malloc(sizeof(Node));
+  n->ty = ND_IDENT;
+  n->name = name;
+  return n;
+}
+
 static Node *new_node_ptr(int cnt, char* name){
   Node* n = malloc(sizeof(Node));
-  n->ty = ND_PTR;
+  n->ty = ND_IDENT_PTR;
   n->cnt = cnt;
   n->name = name;
   return n;
@@ -94,29 +78,31 @@ static Node *new_node_dummy(){
   return n;
 }
 
-static Node *new_node_init_ident(Type* type, char* name){
-  map_putv(local_env, name, new_var(type, name, get_type_sizeof(type->ty)));
+static Node *new_node_decl_ident(Type* type, char* name){
+  map_putv(local_scope, name, new_var(type, name, get_type_sizeof(type)));
+  /* No nessesarry to return a node. */
   return new_node_dummy();
 }
 
-static Node *new_array_type(Type *type, char *name, int size){
-  map_putv(local_env, name, new_array_var(type, name, get_type_sizeof(type->ty), size));
-  return new_node_dummy();
-}
-
-static Node *new_node_ident(char* name){
-  Node *n = malloc(sizeof(Node));
-  n->ty = ND_IDENT;
-  n->name = name;
-  return n;
-}
 
 static Node *new_node_ident_array(char* name, int i){
   Node *n = malloc(sizeof(Node));
   n->ty = ND_IDENT;
   n->name = name;
-  n->val = i;
-  return n;
+
+  int type_size = get_type_sizeof(map_getv(local_scope, name)->type);
+
+  /* Transform an array into a pointer.*/
+  // todo : refactoring.
+  Node *n2 = malloc(sizeof(Node));
+  n2->ty = '-';
+  n2->lhs = n;
+  n2->rhs = new_node_num(type_size * i);
+
+  Node *r = new_node(ND_IDENT_PTR, n2, NULL);
+  r->name = name;
+  r->cnt = 0;
+  return r;
 }
 
 static Node *new_node_call_func(char* name){
@@ -127,13 +113,20 @@ static Node *new_node_call_func(char* name){
   return n;
 }
 
-static Node *new_node_declare_func(char *name){
+static Node *new_node_decl_func(char *name){
   Node *n = malloc(sizeof(Node));
   n->ty = ND_DEC_FUNC;
   n->arg_num = 0;
   n->name = name;
   n->items = new_vector();
   return n;
+}
+
+static Type* new_array_type(int size){
+  Type *t = malloc(sizeof(Type));
+  t->ty = ARRAY;
+  t->array_size = size;
+  return t;
 }
 
 static Token* tkn(){
@@ -194,7 +187,7 @@ Node* ident(Token *tkn){
   }
   
   // WHEN variable comes...
-  if(!map_contains(local_env, tkn->name)){
+  if(!map_contains(local_scope, tkn->name)){
     error("parse.c : Line %d \n  ERROR: name '%s' is not defined. ", __LINE__, tkn->name);
   }
 
@@ -209,7 +202,7 @@ Node* ident(Token *tkn){
     n = new_node_ident(tkn->name);
   }
   
-  // post-inc, post-dec
+  // post-increment, post-decriment
   if(consume(TK_INC)){
     return new_node(ND_INC, n, NULL);
   }else if(consume(TK_DEC)){
@@ -238,7 +231,7 @@ Node* term(){
     expect(TK_TYPE);
 
     Token *t = ((Token*)(tokens->data[pos]));
-    if(map_contains(local_env, t->name)){
+    if(map_contains(local_scope, t->name)){
       error("parse.c : Line %d \n  ERROR: name '%s' is already defined. ", __LINE__, t->name);
     }
     expect(TK_IDENT);
@@ -246,18 +239,20 @@ Node* term(){
     /** Array **/
     if(consume('[')){
       Token *n_tk = expect2(TK_NUM, "parse.c : Line %d \n ERROR : A inner of array must be a number.", __LINE__);
-      Node *n = new_array_type(type, t->name, n_tk->val);
+      Type *array_type = new_array_type(n_tk->val);
+      array_type->ptr_of = type;
+      Node *n = new_node_decl_ident(array_type, t->name);
       expect2(']', "parse.c : Line %d \n ERROR: An array must be closed.", __LINE__);
       return n;
     }
 
-    return new_node_init_ident(type, t->name);
+    return new_node_decl_ident(type, t->name);
   }
 
   if(consume(TK_ADR)){
     Token *t = expect2(TK_IDENT, "parse.c : Line %d \n ERROR : アンパサンドのあとは必ず変数です", __LINE__);
 
-    if(!map_contains(local_env, t->name)){
+    if(!map_contains(local_scope, t->name)){
       error("parse.c : Line %d \n  ERROR: name '%s' is not defined. ", __LINE__, t->name);
     }
     return new_node_adr(t->name);
@@ -270,7 +265,7 @@ Node* term(){
     }
     
     Token *t = expect2(TK_IDENT, "parse.c : Line %d \n ERROR : ポインタのあとは必ず変数です", __LINE__);
-    if(!map_contains(local_env, t->name)){
+    if(!map_contains(local_scope, t->name)){
       error("parse.c : Line %d \n  ERROR: name '%s' is not defined. ", __LINE__, t->name);
     }
     
@@ -310,9 +305,11 @@ Node* unary(){
     int is_bracket = consume('(');
     if(tkn()->ty == TK_TYPE){
       Token *t = expect2(TK_TYPE, "parse.c : Line.%d\n ERROR : The program cannot reach here.", __LINE__);
-      n = new_node_num(get_type_sizeof(t->type->ty));
+      n = new_node_num(get_type_sizeof(t->type));
     }else{
-      n = new_node_num(get_node_sizeof(unary()));
+      Node *tmp = unary();
+      if(tmp->ty == ND_NUM) n = new_node_num(4);
+      else n = new_node_num(map_getv(local_scope, tmp->name)->pos);
     }
     if(is_bracket) expect2(')', "parse.c : Line.%d\n  ERROR : sizeofの括弧が閉じられていません ", __LINE__);
     return n;
@@ -575,7 +572,7 @@ static void opt(Node *n){
   // TODO: 2つまでのデリファレンス（**p）しか対応していない?
   if(n->ty == '+' || n->ty == '-'){
     if(n->lhs != NULL && n->lhs->ty == ND_IDENT && n->rhs != NULL && n->rhs->ty == ND_NUM){
-      Var *v = map_getv(local_env, n->lhs->name);
+      Var *v = map_getv(local_scope, n->lhs->name);
       if(v->type->ty == PTR)
         switch(v->type->ptr_of->ptr_of->ty){
         case INT:
@@ -610,11 +607,11 @@ void func(){
 
     // A function name
     Token *t = expect2(TK_IDENT, "Line.%d in parse.c : 関数の宣言から始める必要があります", __LINE__);
-    Node *n = new_node_declare_func(t->name);
+    Node *n = new_node_decl_func(t->name);
     push_back(nodes, n);
     
     // Initialize (set a local environment)
-    init_local_env(t->name);
+    init_local_scope(t->name);
     
     // Dummy Arguments
     expect('(');

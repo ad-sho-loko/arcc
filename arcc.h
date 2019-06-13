@@ -64,7 +64,7 @@ enum{
   ND_BREAK,
   ND_CONTINUE,
   ND_INT,
-  ND_PTR,
+  ND_IDENT_PTR,
   ND_ADR,
   ND_TYPE,
   ND_LSHIFT,

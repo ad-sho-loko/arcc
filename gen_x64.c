@@ -108,19 +108,8 @@ void gen_top(){
 }
 
 void gen_lval(Node *node){
-  if(node->ty != ND_IDENT && node->ty != ND_PTR)
-    error("Line.%d in gen_x64.c : 左辺は変数（ポインタ）でなければいけません", __LINE__);
-
-  // ND_PTR TODO : gen()のND_PTRのただのコピペ.
-  if(node->ty == ND_PTR){
-    int offset = map_geti(var_table, node->name);
-    printf("  mov rax, [rbp-%d]\n", offset);
-    for(int i=1; i < node->cnt; i++){
-      out("mov rax, [rax]");
-    }
-    out("push rax");
-    return;
-  }
+  if(node->ty != ND_IDENT && node->ty != ND_IDENT_PTR)
+    error("Line.%d in gen_x64.c : 左辺は変数でなければいけません", __LINE__);
 
   // ND_IDENT
   int offset = map_geti(var_table, node->name);
@@ -249,20 +238,7 @@ void gen(Node *node){
   // &x
   if(node->ty == ND_ADR){
     int offset = map_geti(var_table, node->name);
-    // int offset = map_getv(now_env, node->name)->pos * (map_indexOf(now_env, node->name) + 1);
     printf("  lea rax, [rbp-%d]\n", offset);
-    out("push rax");
-    return;
-  }
-
-  // *x **x ***x
-  if(node->ty == ND_PTR){
-    int offset = map_geti(var_table, node->name);
-    // int offset = map_getv(now_env, node->name)->pos * (map_indexOf(now_env, node->name) + 1);
-    printf("  mov rax, [rbp-%d]\n", offset);
-    for(int i=0; i < node->cnt; i++){
-      out("mov rax, [rax]");
-    }
     out("push rax");
     return;
   }
@@ -280,21 +256,40 @@ void gen(Node *node){
     gen(node->rhs);
     out("pop rdi");
     out("pop rax");
-    int size = map_getv(now_env, node->lhs->name)->pos;
+
+    Var *v = map_getv(now_env, node->lhs->name);
+    int size;
+    if(v->type->ty == ARRAY){
+      // TODO : refactoring.
+      size = 4;
+    }else{
+      size = v->pos;
+    }
     outf("mov %s [rax], %s", bit[size], sreg[size]);
     out("push rdi");
     return;
   }
   
-  if(node->ty == ND_IDENT){
+  if(node->ty == ND_IDENT || node->ty == ND_IDENT_PTR){
     gen_lval(node);
+    // here : A variable address in the top of stack.
+
     out("pop rax");
     int size = map_getv(now_env, node->name)->pos;
-    if(size == 8){
-      out("mov rax, [rax]");
-    }else{
+    // TODO : refactoring.
+    if(size < 8){
       outf("movsx rax, %s [rax]",  bit[size]);
+    }else{
+      out("mov rax, [rax]");
     }
+
+    // here : A variable value in rax.
+    
+    for(int i=0; i < node->cnt; i++){
+      // ND_IDENT_PTR 
+      out("mov rax, [rax]");
+    }
+
     out("push rax");
     return;
   }

@@ -286,7 +286,7 @@ char* stringfy_node(int node_kind){
   case 276: return "ND_BREAK";
   case 277: return "ND_CONTINUE";
   case 278: return "ND_INT";
-  case 279: return "ND_PTR";
+  case 279: return "ND_IDENT_PTR";
   case 280: return "ND_ADR";
   case 281: return "ND_TYPE";
   case 282: return "ND_LSHIFT";
