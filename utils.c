@@ -100,6 +100,21 @@ void debug_vector_nodes(Vector *v){
   }
 }
 
+void debug_variable_table(){
+  fprintf(stderr, "======Variable======\n");
+  for(int i=0; i<global_env->keys->len; i++){
+    fprintf(stderr, "%s : {\n", global_env->keys->data[i]);
+    Map* local_env = global_env->values->data[i];
+    for(int j=0; j < local_env->keys->len; j++){
+      char *key = local_env->keys->data[j];
+      Var *var =  (Var*)local_env->values->data[j];
+      fprintf(stderr, "    %s : %d  \n", key, var->pos);
+    }
+    fprintf(stderr, "}\n");
+  }
+  fprintf(stderr, "\n");
+}
+
 // map
 Map* new_map(){
   Map* m = malloc(sizeof(Map));

@@ -25,6 +25,7 @@ int main(int argc, char **argv) {
   // parse
   toplevel();
   debug_vector_nodes(nodes);
+  debug_variable_table(nodes);
 
   // generate x64
   gen_top();

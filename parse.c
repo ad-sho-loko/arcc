@@ -7,6 +7,7 @@ static Map *local_env;
 
 static void init_local_env(char *func_name){
   local_env = new_map();
+  // todo : funcのかぶりvalidation
   map_putm(global_env, func_name, local_env);
 }
 
@@ -23,6 +24,12 @@ static Node *new_node(int ty, Node *lhs, Node *rhs){
   n->ty = ty;
   n->lhs = lhs;
   n->rhs = rhs;
+  return n;
+}
+
+static Node *new_node_empty(int ty){
+  Node * n = malloc(sizeof(Node));
+  n->ty = ty;
   return n;
 }
 
@@ -120,7 +127,7 @@ int consume(int ty){
 }
 
 void expect(int ty){
-  int actual = ((Token*)(tokens->data[pos]))->ty;
+  int actual = tkn()->ty;
   if(actual != ty){
     error("parse.c : Line.%d\n  expected=%c but accutal=%c %d  in parse.c", __LINE__, ty, actual, actual);
   }
@@ -150,7 +157,7 @@ static int get_type_sizeof(int type){
   return 0;
 }
 
-static int get_sizeof(Node *n){
+static int get_node_sizeof(Node *n){
   if(n->ty == ND_NUM){
     return 4;
   }
@@ -184,20 +191,20 @@ Node* ident(Token *tkn){
   }
 
   Node *n;
+  // array
   if(consume('[')){
     int i = expect2(TK_NUM, "", __LINE__)->val;
     n = new_node_ident_array(tkn->name, i);
     expect(']');
   }else{
+    // not array
     n = new_node_ident(tkn->name);
   }
   
-  // 優先度TOPの演算子の処理
+  // post-inc, post-dec
   if(consume(TK_INC)){
-    // a++ -> a; a+=1;
     return new_node(ND_INC, n, NULL);
   }else if(consume(TK_DEC)){
-    // a-- -> a; a-=1
     return new_node(ND_DEC, n, NULL);
   }
   return n;
@@ -277,46 +284,30 @@ Node* term(){
 
 Node* unary(){
   if(consume(TK_INC)){
-    // ++a -> a = a + 1;
     assume(TK_IDENT);
     Node *ident = term();
     return new_node('=', ident, new_node('+', ident, new_node_num(1)));
   }else if(consume(TK_DEC)){
-    // --a -> a = a - 1;
     assume(TK_IDENT);
     Node *ident = term();
     return new_node('=', ident, new_node('-', ident, new_node_num(1)));
   }else if(consume('+')){
-    // +2 -> 2
     return term();
   }else if(consume('-')){
-    // -2 -> 0-2
     return new_node('-', new_node_num(0), term());
   }else if(consume('~')){
     return new_node('~', term(), NULL);
   }else if(consume(TK_SIZEOF)){
-    // todo : refacotirng.
     Node *n;
-    if(consume('(')){
-      Token *t = ((Token*)(tokens->data[pos]));
-      if(t->ty == TK_TYPE){
-        n = new_node_num(get_type_sizeof(t->type->ty));
-        expect(TK_TYPE);
-      }else{
-        n = unary();  
-      }
-      expect2(')', "parse.c : Line.%d\n  ERROR : sizeofの括弧が閉じられていません ", __LINE__);
-      return new_node_num(get_sizeof(n));
-    }
-
-    Token *t = ((Token*)(tokens->data[pos]));
-    if(t->ty == TK_TYPE){
+    int is_bracket = consume('(');
+    if(tkn()->ty == TK_TYPE){
+      Token *t = expect2(TK_TYPE, "parse.c : Line.%d\n ERROR : The program cannot reach here.", __LINE__);
       n = new_node_num(get_type_sizeof(t->type->ty));
-      expect(TK_TYPE);
     }else{
       n = unary();
     }
-    return new_node_num(get_sizeof(n));
+    if(is_bracket) expect2(')', "parse.c : Line.%d\n  ERROR : sizeofの括弧が閉じられていません ", __LINE__);
+    return new_node_num(get_node_sizeof(n));
   }
   return term();
 }
@@ -476,13 +467,13 @@ Node *block(){
     n->items = v;
     return n;
   }else{
-   return stmt();
+    return stmt();
   }
 }
 
 Node *if_stmt(){
   expect('(');
-  Node* n = new_node(ND_IF, NULL, NULL);
+  Node *n = new_node_empty(ND_IF);
   n->cond = expr();
   expect(')');
   n->then = block();
@@ -498,7 +489,7 @@ Node *if_stmt(){
 }
 
 Node *do_while_stmt(){
-  Node *n = new_node(ND_DO_WHILE, NULL,  NULL);
+  Node *n = new_node_empty(ND_DO_WHILE);
   n->then = block();
   expect(TK_WHILE);
   expect('(');
@@ -554,10 +545,10 @@ Node *stmt(){
   }else if(consume(TK_DO)){
     n = do_while_stmt();
   }else if(consume(TK_BREAK)){
-    n = new_node(ND_BREAK, NULL, NULL);
+    n = new_node_empty(ND_BREAK);
     expect(';');
   }else if(consume(TK_CONTINUE)){
-    n = new_node(ND_CONTINUE, NULL, NULL);
+    n = new_node_empty(ND_CONTINUE);
     expect(';');
   }else{
     n = assign();

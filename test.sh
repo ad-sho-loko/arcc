@@ -145,6 +145,7 @@ try 2 'int main(){int *p; int *q; p = alloc4(); q = p + 1; return *q;}'
 try 2 'int main(){int *p; p = alloc4(); p = p + 2; p = p - 1; return *p;}'
 try 8 'int main(){int **p; p = alloc_ptr4(); p = p + 3; return **p;}'
 try 4 'int main(){return sizeof(int);}'
+try 4 'int main(){int a; return sizeof(a);}'
 # 別の型を導入するタイミングで治す.型名でsizeofができない.
 # try 8 'int main(){return sizeof(int*);}'
 try 4 'int main(){int a; return sizeof a;}'

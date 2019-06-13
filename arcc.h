@@ -158,6 +158,7 @@ void printd(char* fmt, ...);
 int do_align(int x, int align);
 void debug_vector_token(Vector *v);
 void debug_vector_nodes(Vector *v);
+void debug_variable_table();
 char* stringfy_token(int tkn_kind);
 char* stringfy_node(int node_kind);
 
