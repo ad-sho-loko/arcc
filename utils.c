@@ -283,6 +283,8 @@ char* stringfy_node(int node_kind){
   case 281: return "ND_TYPE";
   case 282: return "ND_LSHIFT";
   case 283: return "ND_RSHIFT";
+  case 284: return "ND_DO_WHILE";
+  case 285: return "ND_DUMMY";
   default: return "Unknown";
   }
 }

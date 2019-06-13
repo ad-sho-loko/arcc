@@ -11,10 +11,34 @@ static void init_local_env(char *func_name){
   map_putm(global_env, func_name, local_env);
 }
 
-static Var *new_var(Type *type, char* name, int pos){
+static int get_type_sizeof(int type){
+  switch(type){
+  case INT: return 4;
+  case PTR : return 8;
+  }
+  error("parse.c : Line.%d\n  ERROR :No such a type.");
+  return 0;
+}
+
+static int get_node_sizeof(Node *n){
+  if(n->ty == ND_NUM){
+    return 4;
+  }
+
+  if(n->ty == ND_IDENT){
+    Var *var = map_getv(local_env, n->name);
+    if(var->type->ty == INT) return 4;
+    if(var->type->ty == PTR) return 8;
+  }
+
+  error("parse.c : Line.%d\n ERROR : cannnot get sizeof %c", __LINE__, n->ty);
+  return 0;
+}
+
+static Var *new_var(Type *type, char* name, int size){
   Var *v = malloc(sizeof(Var));
   v->type = type;
-  v->pos = pos;
+  v->pos = size;
   v->name = name;
   return v;
 }
@@ -55,22 +79,23 @@ static Node *new_node_num(int val){
   return n;
 }
 
-static Node *new_node_init_ident(Type* type, char* name){
-  Node *n = malloc(sizeof(Node));
-  n->ty = ND_IDENT;
-  n->name = name;
-  // todo : 型のサイズによって変える
-  map_putv(local_env, name, new_var(type, name, 8));
+static Node *new_node_dummy(){
+  Node* n = malloc(sizeof(Node));
+  n->ty = ND_DUMMY;
   return n;
 }
 
+static Node *new_node_init_ident(Type* type, char* name){
+  // todo : 型のサイズによって変える
+  map_putv(local_env, name, new_var(type, name, 8));
+  // map_putv(local_env, name, new_var(type, name, get_type_sizeof(type->ty)));
+  return new_node_dummy();
+}
+
 static Node *new_array_type(Type *type, char *name, int size){
-  Node *n = malloc(sizeof(Node));
-  n->ty = ND_IDENT;
-  n->name = name;
   // todo : 型のサイズによって変える
   map_putv(local_env, name, new_var(type, name, 8 * size));
-  return n;
+  return new_node_dummy();
 }
 
 static Node *new_node_ident(char* name){
@@ -148,30 +173,6 @@ Token *expect2(int ty, char *fmt, ...){
   return t;
 }
 
-static int get_type_sizeof(int type){
-  switch(type){
-  case INT: return 4;
-  case PTR : return 8;
-  }
-  error("No such a type.");
-  return 0;
-}
-
-static int get_node_sizeof(Node *n){
-  if(n->ty == ND_NUM){
-    return 4;
-  }
-
-  if(n->ty == ND_IDENT){
-    Var *var = map_getv(local_env, n->name);
-    if(var->type->ty == INT) return 4;
-    if(var->type->ty == PTR) return 8;
-  }
-
-  error("parse.c : Line.%d\n  cannnot get sizeof %c", __LINE__, n->ty);
-  return 0;
-}
-
 Node* ident(Token *tkn){
   // WHEN calling function comes...
   if(consume('(')){
@@ -242,7 +243,7 @@ Node* term(){
       expect2(']', "parse.c : Line %d \n ERROR: An array must be closed.", __LINE__);
       return n;
     }
-    
+
     return new_node_init_ident(type, t->name);
   }
 
@@ -460,7 +461,8 @@ Node *block(){
   Vector *v = new_vector();
   if(consume('{')){
     while(!consume('}')){
-      push_back(v, stmt());
+      Node *n = stmt();
+      if(n->ty != ND_DUMMY) push_back(v, n);
     }
     Node *n = malloc(sizeof(Node));
     n->ty = ND_BLOCK;
@@ -590,7 +592,8 @@ void walk_nodes(){
 
 void func_body(){
   while(((Token*)tokens->data[pos])->ty != '}'){
-    push_back(nodes, stmt());
+    Node *n = stmt();
+    if(n->ty != ND_DUMMY) push_back(nodes, n);
   }
 }
 
@@ -623,7 +626,7 @@ void func(){
     expect('}');    
     push_back(nodes, new_node(ND_FUNC_END, NULL, NULL));  
 }
-
+ 
 void toplevel(){
   while(tkn()->ty != TK_EOF){
     func();

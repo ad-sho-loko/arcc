@@ -70,6 +70,7 @@ enum{
   ND_LSHIFT,
   ND_RSHIFT,
   ND_DO_WHILE,
+  ND_DUMMY
 };
 
 typedef struct Type{
