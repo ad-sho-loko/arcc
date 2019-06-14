@@ -231,6 +231,11 @@ Node* term(){
     }
 
     /** Initialize ident **/
+    if(consume('=')){
+      new_node_decl_ident(type, t->name);
+      return new_node('=', new_node_ident(t->name), ternary());
+    }
+    
     return new_node_decl_ident(type, t->name);
   }
 

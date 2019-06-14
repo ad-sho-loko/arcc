@@ -241,18 +241,16 @@ char* stringfy_token(int tkn_kind){
   case 277: return "TK_BREAK";
   case 278: return "TK_CONTINUE";
   case 279: return "TK_INT";
-  case 280: return "TK_PTR";
-  case 281: return "TK_ADR";
-  case 282: return "TK_TYPE";
-  case 283: return "TK_REM_EQ";
-  case 284: return "TK_LSHIFT";
-  case 285: return "TK_RSHIFT";
-  case 286: return "TK_LSHIFT_EQ";
-  case 287: return "TK_RSHIFT_EQ";
-  case 288: return "TK_SIZEOF";
-  case 289: return "TK_AND_EQ";
-  case 290: return "TK_OR_EQ";
-  case 291: return "TK_XOR_EQ";
+  case 280: return "TK_TYPE";
+  case 281: return "TK_REM_EQ";
+  case 282: return "TK_LSHIFT";
+  case 283: return "TK_RSHIFT";
+  case 284: return "TK_LSHIFT_EQ";
+  case 285: return "TK_RSHIFT_EQ";
+  case 286: return "TK_SIZEOF";
+  case 287: return "TK_AND_EQ";
+  case 288: return "TK_OR_EQ";
+  case 289: return "TK_XOR_EQ";
   default: return "Unknown";
   }
 }

@@ -25,8 +25,6 @@ enum{
   TK_BREAK,
   TK_CONTINUE,
   TK_INT,
-  TK_PTR,
-  TK_ADR,
   TK_TYPE,
   TK_REM_EQ,
   TK_LSHIFT,
@@ -174,6 +172,7 @@ Node *add();
 Node *mul();
 Node *term();
 Node *unary();
+Node *ternary();
 Node *equality();
 Node *assign();
 Node *stmt();

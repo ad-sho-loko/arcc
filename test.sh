@@ -54,6 +54,7 @@ try 5 'int main(){int a; int b; a = 5; b = 10; return a;}'
 # try 5 'int main(){int a, b; a = 5; b = 10; return a;}'
 # try 5 'int main(){int a = 5; int b = 10; return a;}'
 try 10 'int main(){int a; int b; a = 5; b = 10; return b;}'
+try 10 'int main(){int a = 10; return a;}'
 try 15 'int main(){int a; int b; a = 5; b = 10; return a + b;}'
 try 24 'int main(){int a; int b; int c; a = 2; b = 3; c = 4; return a * b * c;}'
 # [NOT WORKING] big int.

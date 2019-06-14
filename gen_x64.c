@@ -92,16 +92,17 @@ static Env *new_env(int n){
 
 static Stack *env_stack;
 
-// todo : refactoring.
+// todo : now only unitl 2 args
 static char *regs[2] = {"rdi", "rsi"};
 
+// todo : refactoring
 static char *reg[2][9] = {
-  /* 1st  */ {"","","","","edi","","","","rdi",},
-  /* 2nd */  {"","","","","esi","","","","rsi",}
+  /* 1st  */  {"","","","","edi","","","","rdi",},
+  /* 2nd  */  {"","","","","esi","","","","rsi",}
 };
 
-static char *bit[9] = {"","BYTE PTR","","","DWORD PTR","","","","QWORD PTR"};
-static char *sreg[9] = {"","","","","edi","","","","rdi"};
+static char *mod[9] = {"","BYTE PTR","","","DWORD PTR","","","","QWORD PTR"};
+static char *from[9] = {"","","","","edi","","","","rdi"};
 
 // TODO : 出力にコメントをつける
 void gen_top(){
@@ -129,7 +130,7 @@ void gen_top(){
       for(int i=0; i < n->arg_num; i++){
         char *key = var_table->table->keys->data[i];
         int size = lookup(key)->size;
-        outf("mov %s [rbp-%d], %s", bit[size] , (i+1) * size, reg[i][size]);
+        outf("mov %s [rbp-%d], %s", mod[size] , (i+1) * size, reg[i][size]);
       }
       
     }else if(((Node*)nodes->data[i])->ty == ND_FUNC_END){
@@ -305,7 +306,7 @@ void gen(Node *node){
       size = lookup(node->lhs->name)->size;
     }
     
-    outf("mov %s [rax], %s", bit[size], sreg[size]);
+    outf("mov %s [rax], %s", mod[size], from[size]);
     out("push rdi");
     return;
   }
@@ -334,9 +335,11 @@ void gen(Node *node){
     // [HERE] A variable address in the top of stack.
 
     out("pop rax");
+
+    /*** TODO: Refactring ***/
     int size = lookup(node->name)->size;
     if(size < 8){
-      outf("movsx rax, %s [rax]",  bit[size]);
+      outf("movsx rax, %s [rax]", mod[size]);
     }else{
       out("mov rax, [rax]");
     }
@@ -378,7 +381,6 @@ void gen(Node *node){
     // if args exists
     if(node->items != NULL){
       for(int i=0; i<node->items->len; i++){
-        // todo : now only unitl 2 args
         gen(node->items->data[i]);
         outf("pop %s", regs[i]);
       }
@@ -392,18 +394,18 @@ void gen(Node *node){
     // todo : refactoring.
     gen(node->lhs);
     out("cmp rax, 1");
-    char *_true = new_label("or_true", next_label);
-    char *_false = new_label("or_false", next_label);
+    char *ok = new_label("or_true", next_label);
+    char *ng = new_label("or_false", next_label);
     char *end = new_label("or_end", next_label);
     next_label++;
-    outf("je %s", _true);
+    outf("je %s", ok);
     gen(node->rhs);
     out("cmp rax, 1");
-    outf("jne %s", _false);
-    printf("%s:\n", _true);
+    outf("jne %s", ng);
+    printf("%s:\n", ok);
     out("push 1"); // true
     outf("jmp %s", end);
-    printf("%s:\n", _false);
+    printf("%s:\n", ng);
     out("push 0"); // false
     printf("%s:\n", end);
     return;
@@ -413,15 +415,15 @@ void gen(Node *node){
     // todo : refactoring.
     gen(node->lhs);
     out("cmp rax, 1");
-    char *_false = new_label("and_false", next_label);
+    char *ng = new_label("and_false", next_label);
     char *end = new_label("and_end", next_label);
     next_label++;
-    outf("jne %s", _false);
+    outf("jne %s", ng);
     gen(node->rhs);
-    outf("jne %s", _false);
+    outf("jne %s", ng);
     out("push 1"); // true
     outf("jmp %s", end);
-    printf("%s:\n", _false);
+    printf("%s:\n", ng);
     out("push 0"); // false
     printf("%s:\n", end);
     return;
