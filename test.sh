@@ -154,6 +154,7 @@ try 8 'int main(){int *a; return sizeof(a);}'
 try 8 'int main(){return sizeof(int*);}'
 try 10 'int main(){int a; a = 1; return a ? 10 : 5;}'
 try 5 'int main(){int a; a = 0; return a ? 10 : 5;}'
+
 # try 10 'int main(){int a[10]; a[2] = 10; return a[2];}'
 # try 77 'int main(){int a[10]; a[9] = 77; return a[9];}'
 # try 55 'int main(){int a[10]; a[0] = 55; return a[0];}'

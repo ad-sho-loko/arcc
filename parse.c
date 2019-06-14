@@ -24,10 +24,9 @@ static int get_type_sizeof(Type *type){
   return 0;
 }
 
-static Var *new_var(Type *type, char* name, int alloc_size){
+static Var *new_var(Type *type, char* name){
   Var *v = malloc(sizeof(Var));
   v->type = type;
-  v->alloc_size = alloc_size;
   v->name = name;
   return v;
 }
@@ -46,15 +45,7 @@ static Node *new_node_empty(int ty){
   return n;
 }
 
-static Node *new_node_deref(int cnt, char* name){
-  Node* n = malloc(sizeof(Node));
-  n->ty = ND_DEREF;
-  n->cnt = cnt;
-  n->name = name;
-  return n;
-}
-
-static Node *new_node_adr(char* name){
+static Node *new_node_adr(char *name){
   Node* n = malloc(sizeof(Node));
   n->ty = ND_ADR;
   n->name = name;
@@ -75,23 +66,14 @@ static Node *new_node_ident(char* name){
   return n;
 }
 
-static Node *new_node_using_array(char* name, int i){
-  /* Transform an type of array into a pointer.*/
-  Type *type = map_getv(local_scope, name)->type;
-  int size = get_type_sizeof(type);
-  Node *n = new_node_ident(name);
-  Node *num = new_node_num(size * i);
-  return new_node('+', n, num);
-}
-
 static Node *new_node_dummy(){
   Node* n = malloc(sizeof(Node));
   n->ty = ND_DUMMY;
   return n;
 }
 
-static Node *new_node_decl_ident(Type* type, char* name, int size){
-  map_putv(local_scope, name, new_var(type, name, size));
+static Node *new_node_decl_ident(Type* type, char* name){
+  map_putv(local_scope, name, new_var(type, name));
   /* No nessesarry to return a node. */
   return new_node_dummy();
 }
@@ -111,6 +93,13 @@ static Node *new_node_decl_func(char *name){
   n->name = name;
   n->items = new_vector();
   return n;
+}
+
+static Type* wrap_array(Type* t, int size){
+  Type *wrapper = malloc(sizeof(Type));
+  wrapper->ty = ARRAY;
+  wrapper->array_size = size;
+  return wrapper;
 }
 
 static Type* wrap_pointer(Type* t){
@@ -183,15 +172,16 @@ Node* ident(Token *tkn){
   }
 
   // Using a variable(array).
-  Node *n;
   if(consume('[')){
-    int i = expect2(TK_NUM, "", __LINE__)->val;
-    n = new_node_using_array(tkn->name, i);
+    Node *idt = new_node_ident(tkn->name);
+    Node *num = term();
     expect(']');
-  }else{
-    // not array
-    n = new_node_ident(tkn->name);
+    /**  Transform an type of array into a pointer. ex) a[2] => *(a + 2) **/
+    return new_node(ND_DEREF, new_node('+', idt, num), NULL);
   }
+
+  // Using a variable(not array)
+  Node *n = new_node_ident(tkn->name);
   
   // post increment, post decrement
   if(consume(TK_INC)){
@@ -234,39 +224,28 @@ Node* term(){
     /** Initialize array **/
     if(consume('[')){
       Token *num = expect2(TK_NUM, "parse.c : Line %d \n ERROR : A inner of array must be a number.", __LINE__);
-      int type_size = get_type_sizeof(type);
-      Type *wrapper = wrap_pointer(type);
-      Node *n = new_node_decl_ident(wrapper, t->name, type_size * num->val);
+      Type *array = wrap_array(type, num->val);
+      Node *n = new_node_decl_ident(array, t->name);
       expect2(']', "parse.c : Line %d \n ERROR: An array must be closed.", __LINE__);
       return n;
     }
 
     /** Initialize ident **/
-    return new_node_decl_ident(type, t->name, get_type_sizeof(type));
+    return new_node_decl_ident(type, t->name);
   }
 
-  // Areressing 
+  /** Areressing **/
   if(consume(TK_ADR)){
-    Token *t = expect2(TK_IDENT, "parse.c : Line %d \n ERROR : アンパサンドのあとは必ず変数です", __LINE__);
-
+    Token *t = expect2(TK_IDENT, "parse.c : Line %d \n ERROR : アドレス演算子のあとは必ず変数です", __LINE__);
     if(!map_contains(local_scope, t->name)){
       error("parse.c : Line %d \n  ERROR: name '%s' is not defined. ", __LINE__, t->name);
     }
     return new_node_adr(t->name);
   }
   
-  // Dereference
+  /** Dereference **/
   if(consume('*')){
-    int cnt = 1;
-    while(consume('*')){
-      cnt++;
-    }
-    
-    Token *t = expect2(TK_IDENT, "parse.c : Line %d \n ERROR : ポインタのあとは必ず変数です", __LINE__);
-    if(!map_contains(local_scope, t->name)){
-      error("parse.c : Line %d \n  ERROR: name '%s' is not defined. ", __LINE__, t->name);
-    }
-    return new_node_deref(cnt, t->name);
+    return new_node(ND_DEREF, term(), NULL);
   }
 
   Token *tkn = ((Token*)(tokens->data[pos]));
@@ -310,7 +289,7 @@ Node* unary(){
     }else{
       Node *tmp = unary();
       if(tmp->ty == ND_NUM) n = new_node_num(4);
-      else n = new_node_num(map_getv(local_scope, tmp->name)->alloc_size);
+      else n = new_node_num(get_type_sizeof(map_getv(local_scope, tmp->name)->type));
     }
     if(is_bracket) expect2(')', "parse.c : Line.%d\n  ERROR : sizeofの括弧が閉じられていません ", __LINE__);
     return n;
@@ -569,6 +548,7 @@ static void opt(Node *n){
   if(n->rhs != NULL) opt(n->rhs);
 
   // ポインタの加減算を調整するためだけのクソアイデア関数
+  // そもそもコンパイル時にしか調整不可、つまりa[i]ができない.
   // TODO: 2つまでのデリファレンス（**p）しか対応していない?
   if(n->ty == '+' || n->ty == '-'){
     if(n->lhs != NULL && n->lhs->ty == ND_IDENT && n->rhs != NULL && n->rhs->ty == ND_NUM){

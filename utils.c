@@ -108,7 +108,7 @@ void debug_variable_table(){
     for(int j=0; j < local_env->keys->len; j++){
       char *key = local_env->keys->data[j];
       Var *var =  (Var*)local_env->values->data[j];
-      fprintf(stderr, "    %s : %d  \n", key, var->alloc_size);
+      fprintf(stderr, "    %s : %d  \n", key, var->type->ty);
     }
     fprintf(stderr, "}\n");
   }

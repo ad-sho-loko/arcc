@@ -2,20 +2,66 @@
 #include <string.h>
 #include "arcc.h"
 
+static int get_type_sizeof(Type *type){
+  if(type->ty == INT){
+    return 4;
+  }
+
+  if(type->ty == PTR){
+    return 8;
+  }
+
+  if(type->ty == ARRAY){
+    return type->array_size * get_type_sizeof(type->ptr_of);
+  }
+  
+  error("parse.c : Line.%d\n  ERROR :No such a type.");
+  return 0;
+}
+
+typedef struct {
+  Map *table;
+  int size;
+} VarTable;
+
+typedef struct {
+  Type *type;
+  int size;
+  int offset;
+} VarDesc;
 
 static int next_label = 1;
-static Map* now_env;
-static Map* var_table;
+static VarTable* var_table;
 
-Map* new_var_table(Map *env){
+static VarDesc *new_var_desc(Type *type, int size, int offset){
+  VarDesc *v = malloc(sizeof(VarDesc));
+  v->type = type;
+  v->size = size;
+  v->offset = offset;
+  return v;
+}
+
+static VarDesc *lookup(char *name){
+  return map_get(var_table->table, name);
+}
+
+static VarTable* create_var_table(Map *env){
   Map* m = new_map();
   int offset = 0;
-  for(int i=0; i<env->values->len; i++){
+  for(int i=0; i < env->values->len; i++){
     Var *v = ((Var*)env->values->data[i]);
-    offset+=v->alloc_size;
-    map_puti(m, v->name, offset);
+    offset+= get_type_sizeof(v->type);
+
+    /* Transform array into pointer after the array size was allocated. */
+    if(v->type->ty == ARRAY){
+      v->type->ty = PTR;
+    }
+    map_put(m, v->name, new_var_desc(v->type, get_type_sizeof(v->type),  offset));
   }
-  return m;
+  VarTable *tbl = malloc(sizeof(VarTable));
+  tbl->table = m;
+  tbl->size = offset;
+  return tbl;
 }
 
 typedef struct Env{
@@ -44,17 +90,7 @@ static Env *new_env(int n){
   return e;
 }
 
-static int env_size(){
-  int sum = 0;
-  int len = now_env->values->len;
-  for(int i=0; i<len; i++){
-    sum += ((Var*)(now_env->values->data[i]))->alloc_size;
-  }
-  return sum;
-}
-
 static Stack *env_stack;
-
 
 // todo : refactoring.
 static char *regs[2] = {"rdi", "rsi"};
@@ -80,20 +116,22 @@ void gen_top(){
     if(((Node*)nodes->data[i])->ty == ND_DEC_FUNC){
       // prologue
       Node *n = (Node*)nodes->data[i];
-      now_env = map_getm(global_env, n->name);
-      var_table = new_var_table(now_env);
 
+      // The scope changed.
+      var_table = create_var_table(map_getm(global_env, n->name));
+      
       printf("%s:\n",n->name);
       out("push rbp");
       out("mov rbp, rsp");
-      outf("sub rsp, %d", do_align(env_size(), 16));
+      outf("sub rsp, %d", do_align(var_table->size, 16));
 
-      // args
+      // Move args from register into stack.
       for(int i=0; i < n->arg_num; i++){
-        char *key = now_env->keys->data[i];
-        Var* v = map_getv(now_env, key);
-        outf("mov %s [rbp-%d], %s", bit[v->alloc_size] , (i+1) * v->alloc_size, reg[i][v->alloc_size]);
+        char *key = var_table->table->keys->data[i];
+        int size = lookup(key)->size;
+        outf("mov %s [rbp-%d], %s", bit[size] , (i+1) * size, reg[i][size]);
       }
+      
     }else if(((Node*)nodes->data[i])->ty == ND_FUNC_END){
       // epiogue
       outd("epiogue");
@@ -107,11 +145,22 @@ void gen_top(){
   }
 }
 
+// 左辺の文法を示す
 void gen_lval(Node *node){
-  if(node->ty != ND_IDENT && node->ty != ND_ADR && node->ty != ND_DEREF)
+  if(node->ty != ND_IDENT && node->ty != ND_DEREF && node->ty != ND_ADR){
     error("Line.%d in gen_x64.c : 左辺は変数でなければいけません", __LINE__);
+  }  
 
-  int offset = map_geti(var_table, node->name);
+  if(node->ty == ND_DEREF){
+    gen(node->lhs);
+    int offset = lookup(node->lhs->lhs->name)->offset;
+    out("mov rax, rbp");
+    outf("sub rax, %d", offset); 
+    out("push rax");
+    return;
+  }
+  
+  int offset = lookup(node->name)->offset;
   out("mov rax, rbp");
   outf("sub rax, %d", offset); 
   out("push rax");
@@ -248,15 +297,14 @@ void gen(Node *node){
     out("pop rdi");
     out("pop rax");
 
-    Var *v = map_getv(now_env, node->lhs->name);
+    /** TODO : refactoring.*/
     int size;
-
-    /** TODO : refactoring. **/
-    if(v->type->ty == ARRAY){
-      size = 4;
+    if(node->lhs->ty == ND_DEREF){
+      size = lookup(node->lhs->lhs->lhs->name)->size;
     }else{
-      size = v->alloc_size;
+      size = lookup(node->lhs->name)->size;
     }
+    
     outf("mov %s [rax], %s", bit[size], sreg[size]);
     out("push rdi");
     return;
@@ -273,12 +321,9 @@ void gen(Node *node){
 
   // *x
   if(node->ty == ND_DEREF){
-    gen_lval(node);
+    gen(node->lhs);
     out("pop rax");
     out("mov rax, [rax]");
-    for(int i=0; i < node->cnt; i++){
-      out("mov rax, [rax]");
-    }
     out("push rax");
     return;
   }
@@ -289,15 +334,12 @@ void gen(Node *node){
     // [HERE] A variable address in the top of stack.
 
     out("pop rax");
-    int size = map_getv(now_env, node->name)->alloc_size;
-
-    /** TODO : refactoring. **/
+    int size = lookup(node->name)->size;
     if(size < 8){
       outf("movsx rax, %s [rax]",  bit[size]);
     }else{
       out("mov rax, [rax]");
     }
-    
     out("push rax");
     return;
   }

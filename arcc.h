@@ -113,7 +113,6 @@ typedef struct Node{
 typedef struct{
   Type *type;
   char* name;
-  int alloc_size;
 } Var;
 
 // methods for vector.
@@ -128,6 +127,8 @@ typedef struct{
 
 // methods for map.
 Map *new_map();
+void *map_get(Map* m, char *key);
+void map_put(Map* m, char* key, void *value);
 Var *map_getv(Map* m, char *key);
 void map_putv(Map* m, char* key, Var* value);
 int map_geti(Map* m, char *key);
