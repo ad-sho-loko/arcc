@@ -64,7 +64,7 @@ enum{
   ND_BREAK,
   ND_CONTINUE,
   ND_INT,
-  ND_IDENT_PTR,
+  ND_DEREF,
   ND_ADR,
   ND_TYPE,
   ND_LSHIFT,
@@ -113,8 +113,7 @@ typedef struct Node{
 typedef struct{
   Type *type;
   char* name;
-  int pos;
-  int len;
+  int alloc_size;
 } Var;
 
 // methods for vector.

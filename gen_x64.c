@@ -12,7 +12,7 @@ Map* new_var_table(Map *env){
   int offset = 0;
   for(int i=0; i<env->values->len; i++){
     Var *v = ((Var*)env->values->data[i]);
-    offset+=v->pos;
+    offset+=v->alloc_size;
     map_puti(m, v->name, offset);
   }
   return m;
@@ -48,7 +48,7 @@ static int env_size(){
   int sum = 0;
   int len = now_env->values->len;
   for(int i=0; i<len; i++){
-    sum += ((Var*)(now_env->values->data[i]))->pos;
+    sum += ((Var*)(now_env->values->data[i]))->alloc_size;
   }
   return sum;
 }
@@ -92,7 +92,7 @@ void gen_top(){
       for(int i=0; i < n->arg_num; i++){
         char *key = now_env->keys->data[i];
         Var* v = map_getv(now_env, key);
-        outf("mov %s [rbp-%d], %s", bit[v->pos] , (i+1) * v->pos, reg[i][v->pos]);
+        outf("mov %s [rbp-%d], %s", bit[v->alloc_size] , (i+1) * v->alloc_size, reg[i][v->alloc_size]);
       }
     }else if(((Node*)nodes->data[i])->ty == ND_FUNC_END){
       // epiogue
@@ -108,13 +108,12 @@ void gen_top(){
 }
 
 void gen_lval(Node *node){
-  if(node->ty != ND_IDENT && node->ty != ND_IDENT_PTR)
+  if(node->ty != ND_IDENT && node->ty != ND_ADR && node->ty != ND_DEREF)
     error("Line.%d in gen_x64.c : 左辺は変数でなければいけません", __LINE__);
 
-  // ND_IDENT
   int offset = map_geti(var_table, node->name);
   out("mov rax, rbp");
-  outf("sub rax, %d", offset);
+  outf("sub rax, %d", offset); 
   out("push rax");
 }
 
@@ -235,14 +234,6 @@ void gen(Node *node){
     return;
   }
 
-  // &x
-  if(node->ty == ND_ADR){
-    int offset = map_geti(var_table, node->name);
-    printf("  lea rax, [rbp-%d]\n", offset);
-    out("push rax");
-    return;
-  }
-
   if(node->ty == '~'){
     gen(node->lhs);
     out("pop rax");
@@ -259,37 +250,54 @@ void gen(Node *node){
 
     Var *v = map_getv(now_env, node->lhs->name);
     int size;
+
+    /** TODO : refactoring. **/
     if(v->type->ty == ARRAY){
-      // TODO : refactoring.
       size = 4;
     }else{
-      size = v->pos;
+      size = v->alloc_size;
     }
     outf("mov %s [rax], %s", bit[size], sreg[size]);
     out("push rdi");
     return;
   }
-  
-  if(node->ty == ND_IDENT || node->ty == ND_IDENT_PTR){
+
+  // &x
+  if(node->ty == ND_ADR){
     gen_lval(node);
-    // here : A variable address in the top of stack.
+    out("pop rax");
+    outf("lea rax, [rax]");
+    out("push rax");
+    return;
+  }
+
+  // *x
+  if(node->ty == ND_DEREF){
+    gen_lval(node);
+    out("pop rax");
+    out("mov rax, [rax]");
+    for(int i=0; i < node->cnt; i++){
+      out("mov rax, [rax]");
+    }
+    out("push rax");
+    return;
+  }
+
+  // x
+  if(node->ty == ND_IDENT){
+    gen_lval(node);
+    // [HERE] A variable address in the top of stack.
 
     out("pop rax");
-    int size = map_getv(now_env, node->name)->pos;
-    // TODO : refactoring.
+    int size = map_getv(now_env, node->name)->alloc_size;
+
+    /** TODO : refactoring. **/
     if(size < 8){
       outf("movsx rax, %s [rax]",  bit[size]);
     }else{
       out("mov rax, [rax]");
     }
-
-    // here : A variable value in rax.
     
-    for(int i=0; i < node->cnt; i++){
-      // ND_IDENT_PTR 
-      out("mov rax, [rax]");
-    }
-
     out("push rax");
     return;
   }

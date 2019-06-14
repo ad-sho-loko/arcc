@@ -4,7 +4,6 @@
 #include "arcc.h"
 
 Vector *tokens;
-static int pos;
 
 static bool valid_leading(char ch){
   return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || (ch == '_');  
@@ -69,56 +68,9 @@ static Token *new_token_ident(char *ident, char *input){
   return t;
 }
 
-static Type* new_ptr(){
-  Type *t = malloc(sizeof(Type));
-  t->ty = PTR;
-  return t;
-}
-
-static Token *current_token(){
-  return (Token*)(tokens->data[pos]);
-}
-
-static int current_token_ty(){
-  return ((Token*)(tokens->data[pos]))->ty;
-}
-
-static bool is_type_token(){
-  // todo : refactor pointernized.
-  return ((Token*)(tokens->data[pos]))->ty == TK_TYPE && pos+1 < tokens->len
-    && (((Token*)(tokens->data[pos+1]))->ty == TK_PTR || ((Token*)(tokens->data[pos+1]))->ty == '*');
-}
-
 static bool keyword(char* p, char* word){
   int len = strlen(word);
   return strncmp(p, word, len) == 0 && !is_alnum(p[len]);
-}
-
-// spec: int **x => type -> ptr -> ptr -> int -> NULL
-// [todo] spec2:  int* => type -> ptr -> int -> NULL
-static Vector *pointernized(){
-  Vector* v = new_vector();
-  for(pos=0; pos<tokens->len; pos++){
-    if(is_type_token()){
-      Token *top = current_token();
-      Type *last_type = top->type;
-      top->type = new_ptr();
-      Type *now = top->type;
-      pos++;
-      while(current_token_ty() == TK_PTR || current_token_ty() == '*'){
-        now->ptr_of = new_ptr();
-        now = now->ptr_of;
-        pos++;
-      }
-      now->ptr_of = last_type;
-      push_back(v, top);
-      pos--;
-      
-    }else{
-      push_back(v, tokens->data[pos]);
-    }
-  }
-  return v;
 }
 
 Vector *tokenize(char *p){
@@ -250,13 +202,6 @@ Vector *tokenize(char *p){
       p+=2;
       continue;
     }    
-    
-    // pointer
-    if(*p == '*' && (valid_leading(*(p+1)) || *(p+1) == '*')){
-      push_back(tokens, new_token(TK_PTR, "*", 0));
-      p+=1;
-      continue;
-    }
 
     // reference
     if(*p == '&' && valid_leading(*(p+1))){
@@ -355,5 +300,5 @@ Vector *tokenize(char *p){
     error("Line.%d in token.c : cannot tokenize %s", __LINE__, p);
   }
   push_back(tokens, new_token(TK_EOF, p, 0));
-  return pointernized();
+  return tokens;
 }

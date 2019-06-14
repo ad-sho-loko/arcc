@@ -108,7 +108,7 @@ void debug_variable_table(){
     for(int j=0; j < local_env->keys->len; j++){
       char *key = local_env->keys->data[j];
       Var *var =  (Var*)local_env->values->data[j];
-      fprintf(stderr, "    %s : %d  \n", key, var->pos);
+      fprintf(stderr, "    %s : %d  \n", key, var->alloc_size);
     }
     fprintf(stderr, "}\n");
   }
@@ -286,7 +286,7 @@ char* stringfy_node(int node_kind){
   case 276: return "ND_BREAK";
   case 277: return "ND_CONTINUE";
   case 278: return "ND_INT";
-  case 279: return "ND_IDENT_PTR";
+  case 279: return "ND_DEREF";
   case 280: return "ND_ADR";
   case 281: return "ND_TYPE";
   case 282: return "ND_LSHIFT";
@@ -296,4 +296,3 @@ char* stringfy_node(int node_kind){
   default: return "Unknown";
   }
 }
-
