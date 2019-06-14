@@ -72,6 +72,7 @@ static Node *new_node_dummy(){
   return n;
 }
 
+/* Register the variable to the current environment. */
 static Node *new_node_decl_ident(Type* type, char* name){
   map_putv(local_scope, name, new_var(type, name));
   /* No nessesarry to return a node. */
@@ -86,6 +87,7 @@ static Node *new_node_call_func(char* name){
   return n;
 }
 
+/* Register the function to the current environment. */
 static Node *new_node_decl_func(char *name){
   Node *n = malloc(sizeof(Node));
   n->ty = ND_DEC_FUNC;
@@ -99,6 +101,7 @@ static Type* wrap_array(Type* t, int size){
   Type *wrapper = malloc(sizeof(Type));
   wrapper->ty = ARRAY;
   wrapper->array_size = size;
+  wrapper->ptr_of = t;
   return wrapper;
 }
 
@@ -176,14 +179,14 @@ Node* ident(Token *tkn){
     Node *idt = new_node_ident(tkn->name);
     Node *num = term();
     expect(']');
-    /**  Transform an type of array into a pointer. ex) a[2] => *(a + 2) **/
+    /** Transform an type of array into a pointer. ex) a[2] => *(a + 2) **/
     return new_node(ND_DEREF, new_node('+', idt, num), NULL);
   }
 
   // Using a variable(not array)
   Node *n = new_node_ident(tkn->name);
   
-  // post increment, post decrement
+  // Post increment, Post decrement
   if(consume(TK_INC)){
     return new_node(ND_INC, n, NULL);
   }else if(consume(TK_DEC)){
@@ -203,7 +206,7 @@ Node* term(){
 
   // The progress of implemention.
   // [o] int a;
-  // [x] int a = 1;
+  // [o] int a = 1;
   // [x] int a, b;
   // [x] int a = 1, b;
   // [x] int a = 1, b = 2;
@@ -221,7 +224,7 @@ Node* term(){
     }
     expect(TK_IDENT);
 
-    /** Initialize array **/
+    /** Initialize the array **/
     if(consume('[')){
       Token *num = expect2(TK_NUM, "parse.c : Line %d \n ERROR : A inner of array must be a number.", __LINE__);
       Type *array = wrap_array(type, num->val);
@@ -230,12 +233,13 @@ Node* term(){
       return n;
     }
 
-    /** Initialize ident **/
+    /** Initialize the ident **/
     if(consume('=')){
       new_node_decl_ident(type, t->name);
       return new_node('=', new_node_ident(t->name), ternary());
     }
-    
+
+    /** Declare the ident **/
     return new_node_decl_ident(type, t->name);
   }
 
@@ -548,6 +552,7 @@ Node *stmt(){
   return n;
 }
 
+/*
 static void opt(Node *n){
   if(n->lhs != NULL) opt(n->lhs);
   if(n->rhs != NULL) opt(n->rhs);
@@ -578,6 +583,7 @@ void walk_nodes(){
     opt(nodes->data[i]);
   }
 }
+*/
 
 void func_body(){
   while(((Token*)tokens->data[pos])->ty != '}'){
@@ -624,5 +630,5 @@ void toplevel(){
     // NEXT : macro
   }
   // todo : Node構築後の作業 : ポインタの加減を調整する.
-  walk_nodes();
+  // walk_nodes();
 }

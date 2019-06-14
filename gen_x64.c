@@ -2,6 +2,21 @@
 #include <string.h>
 #include "arcc.h"
 
+typedef struct {
+  Map *table;
+  int size;
+} VarTable;
+
+typedef struct {
+  Type *type;
+  int size;
+  int offset;
+} VarDesc;
+
+static int next_label = 1;
+static VarTable* var_table;
+
+
 static int get_type_sizeof(Type *type){
   if(type->ty == INT){
     return 4;
@@ -18,20 +33,6 @@ static int get_type_sizeof(Type *type){
   error("parse.c : Line.%d\n  ERROR :No such a type.");
   return 0;
 }
-
-typedef struct {
-  Map *table;
-  int size;
-} VarTable;
-
-typedef struct {
-  Type *type;
-  int size;
-  int offset;
-} VarDesc;
-
-static int next_label = 1;
-static VarTable* var_table;
 
 static VarDesc *new_var_desc(Type *type, int size, int offset){
   VarDesc *v = malloc(sizeof(VarDesc));
@@ -58,6 +59,7 @@ static VarTable* create_var_table(Map *env){
     }
     map_put(m, v->name, new_var_desc(v->type, get_type_sizeof(v->type),  offset));
   }
+
   VarTable *tbl = malloc(sizeof(VarTable));
   tbl->table = m;
   tbl->size = offset;
@@ -90,6 +92,23 @@ static Env *new_env(int n){
   return e;
 }
 
+// NOT COOL....
+void adjust(char *reg, Type* type){
+  char s[64];
+  if(type->ty == PTR){
+    if(type->ptr_of->ty == INT){
+      sprintf(s, "add %s, %s", reg, reg);
+      out(s);
+      out(s);
+    }else{
+      sprintf(s, "add %s, %s", reg, reg);
+      out(s);
+      out(s);
+      out(s);
+    }
+  }
+}
+
 static Stack *env_stack;
 
 // todo : now only unitl 2 args
@@ -97,8 +116,8 @@ static char *regs[2] = {"rdi", "rsi"};
 
 // todo : refactoring
 static char *reg[2][9] = {
-  /* 1st  */  {"","","","","edi","","","","rdi",},
-  /* 2nd  */  {"","","","","esi","","","","rsi",}
+  /* 1st */  {"","","","","edi","","","","rdi",},
+  /* 2nd */  {"","","","","esi","","","","rsi",}
 };
 
 static char *mod[9] = {"","BYTE PTR","","","DWORD PTR","","","","QWORD PTR"};
@@ -147,24 +166,17 @@ void gen_top(){
 }
 
 // 左辺の文法を示す
-void gen_lval(Node *node){
+int gen_lval(Node *node){
   if(node->ty != ND_IDENT && node->ty != ND_DEREF && node->ty != ND_ADR){
     error("Line.%d in gen_x64.c : 左辺は変数でなければいけません", __LINE__);
-  }  
-
-  if(node->ty == ND_DEREF){
-    gen(node->lhs);
-    int offset = lookup(node->lhs->lhs->name)->offset;
-    out("mov rax, rbp");
-    outf("sub rax, %d", offset); 
-    out("push rax");
-    return;
   }
-  
+
   int offset = lookup(node->name)->offset;
   out("mov rax, rbp");
   outf("sub rax, %d", offset); 
   out("push rax");
+
+  return lookup(node->name)->size;
 }
 
 void gen(Node *node){  
@@ -293,19 +305,11 @@ void gen(Node *node){
   }
   
   if(node->ty == '='){
-    gen_lval(node->lhs);
+    int size = gen_lval(node->lhs);
     gen(node->rhs);
     out("pop rdi");
     out("pop rax");
 
-    /** TODO : refactoring.*/
-    int size;
-    if(node->lhs->ty == ND_DEREF){
-      size = lookup(node->lhs->lhs->lhs->name)->size;
-    }else{
-      size = lookup(node->lhs->name)->size;
-    }
-    
     outf("mov %s [rax], %s", mod[size], from[size]);
     out("push rdi");
     return;
@@ -331,18 +335,17 @@ void gen(Node *node){
 
   // x
   if(node->ty == ND_IDENT){
-    gen_lval(node);
+    int size = gen_lval(node);
     // [HERE] A variable address in the top of stack.
 
     out("pop rax");
 
     /*** TODO: Refactring ***/
-    int size = lookup(node->name)->size;
     if(size < 8){
       outf("movsx rax, %s [rax]", mod[size]);
     }else{
       out("mov rax, [rax]");
-    }
+    } 
     out("push rax");
     return;
   }
@@ -437,9 +440,15 @@ void gen(Node *node){
   
   switch(node->ty){
   case '+':
+    if(node->lhs->ty == ND_IDENT && lookup(node->lhs->name)->type->ty == PTR){
+      adjust("rdi", lookup(node->lhs->name)->type);
+    }
     out("add rax, rdi");
     break;
   case '-':
+    if(node->lhs->ty == ND_IDENT && lookup(node->lhs->name)->type->ty == PTR){
+      adjust("rdi", lookup(node->lhs->name)->type);
+    }
     out("sub rax, rdi");
     break;
   case '*':
