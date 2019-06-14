@@ -167,7 +167,7 @@ void gen_top(){
 
 // 左辺の文法を示す
 int gen_lval(Node *node){
-  if(node->ty != ND_IDENT && node->ty != ND_DEREF && node->ty != ND_ADR){
+  if(node->ty != ND_IDENT && node->ty != ND_DEREF){
     error("Line.%d in gen_x64.c : 左辺は変数でなければいけません", __LINE__);
   }
 
@@ -317,7 +317,7 @@ void gen(Node *node){
 
   // &x
   if(node->ty == ND_ADR){
-    gen_lval(node);
+    gen_lval(node->lhs);
     out("pop rax");
     outf("lea rax, [rax]");
     out("push rax");

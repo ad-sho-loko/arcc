@@ -45,13 +45,6 @@ static Node *new_node_empty(int ty){
   return n;
 }
 
-static Node *new_node_adr(char *name){
-  Node* n = malloc(sizeof(Node));
-  n->ty = ND_ADR;
-  n->name = name;
-  return n;
-}
-
 static Node *new_node_num(int val){
   Node* n = malloc(sizeof(Node));
   n->ty = ND_NUM;
@@ -249,7 +242,7 @@ Node* term(){
     if(!map_contains(local_scope, t->name)){
       error("parse.c : Line %d \n  ERROR: name '%s' is not defined. ", __LINE__, t->name);
     }
-    return new_node_adr(t->name);
+    return new_node(ND_ADR, new_node_ident(t->name), NULL);
   }
   
   /** Dereference **/
