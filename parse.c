@@ -235,7 +235,7 @@ Node* term(){
   }
 
   /** Areressing **/
-  if(consume(TK_ADR)){
+  if(consume('&')){
     Token *t = expect2(TK_IDENT, "parse.c : Line %d \n ERROR : アドレス演算子のあとは必ず変数です", __LINE__);
     if(!map_contains(local_scope, t->name)){
       error("parse.c : Line %d \n  ERROR: name '%s' is not defined. ", __LINE__, t->name);

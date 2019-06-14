@@ -202,13 +202,6 @@ Vector *tokenize(char *p){
       p+=2;
       continue;
     }    
-
-    // reference
-    if(*p == '&' && valid_leading(*(p+1))){
-      push_back(tokens, new_token(TK_ADR, "&", 0));
-      p+=1;
-      continue;
-    }
     
     if(*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' || *p == ')' || *p == '<' || *p == '>' || *p == ';' || *p == '=' || *p == '{' || *p == '}' || *p == ',' || *p == '%' || *p == '&' || *p == '|' || *p == '^' || *p == '~' || *p == '?' || *p == ':' || *p == '[' || *p == ']'){
       push_back(tokens, new_token(*p, p, 0));
