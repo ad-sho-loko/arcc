@@ -28,6 +28,10 @@ static int get_type_sizeof(Type *type){
   return 0;
 }
 
+static Var *lookup(char *name){
+  return map_getv(local_scope, name);
+}
+
 static Var *new_var(Type *type, char* name){
   Var *v = malloc(sizeof(Var));
   v->type = type;
@@ -76,7 +80,8 @@ static Node *new_node_dummy(){
 /* Register the variable to the current environment. */
 static Node *new_node_decl_ident(Type* type, char* name){
   map_putv(local_scope, name, new_var(type, name));
-  /* No nessesarry to return a node. */
+  /* Indeed, No nessesarry to return a node. */
+  // Node *n =  n->name = name;
   return new_node_dummy();
 }
 
@@ -221,7 +226,7 @@ Node* term(){
     }
     expect(TK_IDENT);
 
-    /** Initialize the array **/
+    /** Declare and Initialize the array **/
     if(consume('[')){
       Token *num = expect2(TK_NUM, "parse.c : Line %d \n ERROR : A inner of array must be a number.", __LINE__);
       Type *array = wrap_array(type, num->val);
@@ -229,7 +234,7 @@ Node* term(){
       return new_node_decl_ident(array, t->name);
     }
 
-    /** Initialize the ident **/
+    /** Declare and Initialize the ident **/
     if(consume('=')){
       new_node_decl_ident(type, t->name);
       return new_node('=', new_node_ident(t->name), ternary());
@@ -282,22 +287,28 @@ Node* unary(){
   }else if(consume('~')){
     return new_node('~', term(), NULL);
   }else if(consume(TK_SIZEOF)){
-    /*** TODO : refactoring  ***/
-    Node *n;
-    int is_bracket = consume('(');
-    if(tkn()->ty == TK_TYPE){
-      Type *type = expect2(TK_TYPE, "parse.c : Line.%d\n ERROR : The program cannot reach here.", __LINE__)->type;
-      if(consume('*')){
+    int need_close = consume('(');
+
+    if(((Token*)(tokens->data[pos]))->ty == TK_TYPE){
+      Type *type = ((Token*)(tokens->data[pos]))->type;
+      expect(TK_TYPE);
+      while(consume('*')){
         type = wrap_pointer(type);
       }
-      n = new_node_num(get_type_sizeof(type));
-    }else{
-      Node *tmp = term();
-      if(tmp->ty == ND_NUM) n = new_node_num(4);
-      else n = new_node_num(get_type_sizeof(map_getv(local_scope, tmp->name)->type));
+      if(need_close) expect2(')', "parse.c : Line.%d\n  ERROR : sizeofの括弧が閉じられていません ", __LINE__);
+      return new_node_num(get_type_sizeof(type));
     }
-    if(is_bracket) expect2(')', "parse.c : Line.%d\n  ERROR : sizeofの括弧が閉じられていません ", __LINE__);
-    return n;
+
+    Node *n = unary();
+    Node *r;
+    if(n->ty == ND_IDENT){
+      r = new_node_num(get_type_sizeof(lookup(n->name)->type));
+    }else{
+      // ND_NUM 
+      r = new_node_num(4);
+    }
+    if(need_close) expect2(')', "parse.c : Line.%d\n  ERROR : sizeofの括弧が閉じられていません ", __LINE__);
+    return r;
   }
   return term();
 }
@@ -547,39 +558,6 @@ Node *stmt(){
   }
   return n;
 }
-
-/*
-static void opt(Node *n){
-  if(n->lhs != NULL) opt(n->lhs);
-  if(n->rhs != NULL) opt(n->rhs);
-
-  // ポインタの加減算を調整するためだけのクソアイデア関数
-  // そもそもコンパイル時にしか調整不可、つまりa[i]ができない.
-  // TODO: 2つまでのデリファレンス（**p）しか対応していない?
-  if(n->ty == '+' || n->ty == '-'){
-    if(n->lhs != NULL && n->lhs->ty == ND_IDENT && n->rhs != NULL && n->rhs->ty == ND_NUM){
-      Var *v = map_getv(local_scope, n->lhs->name);
-      if(v->type->ty == PTR)
-        switch(v->type->ptr_of->ty){
-        case INT:
-          n->rhs->val = n->rhs->val * sizeof(int);
-          break;
-        case PTR:
-          n->rhs->val = n->rhs->val * sizeof(int*);
-          break;
-        } else if(v->type->ty == INT){
-          // nop
-      }
-    }
-  }
-}
-
-void walk_nodes(){
-  for(int i=0; i< nodes->len; i++){
-    opt(nodes->data[i]);
-  }
-}
-*/
 
 void func_body(){
   while(((Token*)tokens->data[pos])->ty != '}'){
