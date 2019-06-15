@@ -57,6 +57,18 @@ static Node *new_node_num(int val){
 }
 
 static Node *new_node_ident(char* name){
+
+  if(!map_contains(local_scope, name)){
+    error("parse.c : Line %d \n  ERROR: name '%s' is not defined. ", __LINE__, name);
+  }
+  
+  if(map_getv(local_scope, name)->type->ty == ARRAY){
+    Node *n = malloc(sizeof(Node));
+    n->ty = ND_IDENT;
+    n->name = name;
+    return new_node(ND_ADR, n, NULL);
+  }
+  
   Node *n = malloc(sizeof(Node));
   n->ty = ND_IDENT;
   n->name = name;
@@ -167,9 +179,6 @@ Node* ident(Token *tkn){
   }
   
   // Using a variable.
-  if(!map_contains(local_scope, tkn->name)){
-    error("parse.c : Line %d \n  ERROR: name '%s' is not defined. ", __LINE__, tkn->name);
-  }
 
   // Using a variable(array).
   if(consume('[')){
@@ -177,7 +186,7 @@ Node* ident(Token *tkn){
     Node *num = term();
     expect(']');
     /** Transform an type of array into a pointer. ex) a[2] => *(a + 2) => *(&a + 2) **/
-    return new_node(ND_DEREF, new_node('+', new_node(ND_ADR, idt, NULL), num), NULL);
+    return new_node(ND_DEREF, new_node('+', idt, num), NULL);
   }
 
   // Using a variable(not array)
@@ -228,10 +237,9 @@ Node* term(){
 
       // Meanwhile initialize pointer.
       /** int a[10]  =>  int *a = <addr>  */
-
-      //Node *left = new_node_ident(t->name);
-      //Node *right = new_node_ident(t->name);
-      //Node *n = new_node('=', left, right);
+      // Node *left = new_node(ND_DEREF, new_node_ident(t->name), NULL);
+      //Node *right = new_node(ND_ADR, new_node_ident(t->name), NULL);
+      // Node *n = new_node('=', left, right);
       
       expect2(']', "parse.c : Line %d \n ERROR: An array must be closed.", __LINE__);
       return new_node_decl_ident(array, t->name);
@@ -300,7 +308,7 @@ Node* unary(){
       }
       n = new_node_num(get_type_sizeof(type));
     }else{
-      Node *tmp = unary();
+      Node *tmp = term();
       if(tmp->ty == ND_NUM) n = new_node_num(4);
       else n = new_node_num(get_type_sizeof(map_getv(local_scope, tmp->name)->type));
     }

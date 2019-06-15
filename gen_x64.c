@@ -178,9 +178,13 @@ int gen_lval(Node *node){
     int s2 = gen_lval(node->rhs); // fix
     out("pop rdi");
     out("pop rax");
+
+    // todo : refactoring soon...
     if(node->lhs->ty == ND_IDENT && lookup(node->lhs->name)->type->ty == PTR){ // fix
       adjust("rdi", lookup(node->lhs->name)->type);
     }
+
+    
     if(node->ty == '+') out("add rax, rdi");
     else out("sub rax, rdi");
     out("push rax");
@@ -197,11 +201,13 @@ int gen_lval(Node *node){
   }
   
   if(node->ty == ND_DEREF){
+
     // Skip the deref once.
     int size = gen_lval(node->lhs);
     // out("pop rax");
     // out("mov rax, [rax]");
     // out("push rax");
+    
     return size;
   }
   
