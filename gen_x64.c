@@ -167,15 +167,49 @@ void gen_top(){
 
 // 左辺の文法を示す
 int gen_lval(Node *node){
-  if(node->ty != ND_IDENT && node->ty != ND_DEREF){
-    error("Line.%d in gen_x64.c : 左辺は変数でなければいけません", __LINE__);
+
+  if(node->ty == ND_NUM){
+    outf("push %d", node->val);
+    return 0;
   }
 
+  if(node->ty == '+' || node->ty == '-'){
+    int s1 = gen_lval(node->lhs);
+    int s2 = gen_lval(node->rhs); // fix
+    out("pop rdi");
+    out("pop rax");
+    if(node->lhs->ty == ND_IDENT && lookup(node->lhs->name)->type->ty == PTR){ // fix
+      adjust("rdi", lookup(node->lhs->name)->type);
+    }
+    if(node->ty == '+') out("add rax, rdi");
+    else out("sub rax, rdi");
+    out("push rax");
+    return s1;
+  }
+
+  // &x
+  if(node->ty == ND_ADR){
+    int size = gen_lval(node->lhs);
+    out("pop rax");
+    outf("lea rax, [rax]");
+    out("push rax");
+    return size;
+  }
+  
+  if(node->ty == ND_DEREF){
+    // Skip the deref once.
+    int size = gen_lval(node->lhs);
+    // out("pop rax");
+    // out("mov rax, [rax]");
+    // out("push rax");
+    return size;
+  }
+  
+  // ND_IDENT
   int offset = lookup(node->name)->offset;
   out("mov rax, rbp");
   outf("sub rax, %d", offset); 
   out("push rax");
-
   return lookup(node->name)->size;
 }
 
@@ -336,8 +370,7 @@ void gen(Node *node){
   // x
   if(node->ty == ND_IDENT){
     int size = gen_lval(node);
-    // [HERE] A variable address in the top of stack.
-
+    // [HERE] A variable address at the top of stack.
     out("pop rax");
 
     /*** TODO: Refactring ***/
@@ -347,6 +380,8 @@ void gen(Node *node){
       out("mov rax, [rax]");
     } 
     out("push rax");
+
+    // [HERE] A actual variable value at the top of stack.
     return;
   }
 

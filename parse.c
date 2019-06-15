@@ -19,6 +19,10 @@ static int get_type_sizeof(Type *type){
   if(type->ty == PTR){
     return 8;
   }
+
+  if(type->ty == ARRAY){
+    return type->array_size * get_type_sizeof(type->ptr_of);
+  }
   
   error("parse.c : Line.%d\n  ERROR :No such a type.");
   return 0;
@@ -172,8 +176,8 @@ Node* ident(Token *tkn){
     Node *idt = new_node_ident(tkn->name);
     Node *num = term();
     expect(']');
-    /** Transform an type of array into a pointer. ex) a[2] => *(a + 2) **/
-    return new_node(ND_DEREF, new_node('+', idt, num), NULL);
+    /** Transform an type of array into a pointer. ex) a[2] => *(a + 2) => *(&a + 2) **/
+    return new_node(ND_DEREF, new_node('+', new_node(ND_ADR, idt, NULL), num), NULL);
   }
 
   // Using a variable(not array)
@@ -221,9 +225,16 @@ Node* term(){
     if(consume('[')){
       Token *num = expect2(TK_NUM, "parse.c : Line %d \n ERROR : A inner of array must be a number.", __LINE__);
       Type *array = wrap_array(type, num->val);
-      Node *n = new_node_decl_ident(array, t->name);
+
+      // Meanwhile initialize pointer.
+      /** int a[10]  =>  int *a = <addr>  */
+
+      //Node *left = new_node_ident(t->name);
+      //Node *right = new_node_ident(t->name);
+      //Node *n = new_node('=', left, right);
+      
       expect2(']', "parse.c : Line %d \n ERROR: An array must be closed.", __LINE__);
-      return n;
+      return new_node_decl_ident(array, t->name);
     }
 
     /** Initialize the ident **/
