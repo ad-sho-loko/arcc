@@ -100,6 +100,15 @@ void debug_vector_nodes(Vector *v){
   }
 }
 
+char *str_type(int ty){
+  switch(ty){
+  case 0 : return "INT";
+  case 1 : return "PTR";
+  case 2 : return "ARRAY";
+  } 
+  return "Unknown";
+}
+
 void debug_variable_table(){
   fprintf(stderr, "======Variable======\n");
   for(int i=0; i<global_env->keys->len; i++){
@@ -108,7 +117,7 @@ void debug_variable_table(){
     for(int j=0; j < local_env->keys->len; j++){
       char *key = local_env->keys->data[j];
       Var *var =  (Var*)local_env->values->data[j];
-      fprintf(stderr, "    %s : %d  \n", key, var->type->ty);
+      fprintf(stderr, "    %s : %s\n", key, str_type(var->type->ty));
     }
     fprintf(stderr, "}\n");
   }

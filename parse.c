@@ -162,6 +162,17 @@ Token *expect2(int ty, char *fmt, ...){
   return t;
 }
 
+static Type *parse_type(){
+  assume(TK_TYPE);
+  Type *type = ((Token*)(tokens->data[pos]))->type;
+  expect(TK_TYPE);
+
+  while(consume('*')){
+    type = wrap_pointer(type);
+  }
+  return type;    
+}
+
 Node* ident(Token *tkn){
   // Calling function.
   if(consume('(')){
@@ -213,12 +224,15 @@ Node* term(){
   // [x] int a = 1, b;
   // [x] int a = 1, b = 2;
   if(((Token*)(tokens->data[pos]))->ty == TK_TYPE){
-    Type *type = ((Token*)(tokens->data[pos]))->type;
+    Type *type = parse_type();
+
+      /*
+      ((Token*)(tokens->data[pos]))->type;
     expect(TK_TYPE);
 
     while(consume('*')){
       type = wrap_pointer(type);
-    }
+      }*/
     
     Token *t = ((Token*)(tokens->data[pos]));
     if(map_contains(local_scope, t->name)){
@@ -290,11 +304,7 @@ Node* unary(){
     int need_close = consume('(');
 
     if(((Token*)(tokens->data[pos]))->ty == TK_TYPE){
-      Type *type = ((Token*)(tokens->data[pos]))->type;
-      expect(TK_TYPE);
-      while(consume('*')){
-        type = wrap_pointer(type);
-      }
+      Type *type = parse_type();
       if(need_close) expect2(')', "parse.c : Line.%d\n  ERROR : sizeofの括弧が閉じられていません ", __LINE__);
       return new_node_num(get_type_sizeof(type));
     }
