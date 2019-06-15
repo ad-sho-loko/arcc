@@ -2,6 +2,15 @@
 #include <string.h>
 #include "arcc.h"
 
+typedef struct Env{
+  int n;
+  char *start;
+  char *then;
+  char *els;
+  char *last;
+  char *end;
+} Env;
+
 typedef struct {
   Map *table;
   int size;
@@ -15,7 +24,6 @@ typedef struct {
 
 static int next_label = 1;
 static VarTable* var_table;
-
 
 static int get_type_sizeof(Type *type){
   if(type->ty == INT){
@@ -61,15 +69,6 @@ static VarTable* create_var_table(Map *env){
   return tbl;
 }
 
-typedef struct Env{
-  int n;
-  char *start;
-  char *then;
-  char *els;
-  char *last;
-  char *end;
-} Env;
-
 static char *new_label(char *sign, int cnt){
   char *s = malloc(sizeof(char)*256);
   snprintf(s, 256, ".L%s%03d", sign, cnt);
@@ -88,9 +87,9 @@ static Env *new_env(int n){
 }
 
 // NOT COOL....
-void adjust(char *reg, Type* type){
+void adjust( Type* type, char *reg){
   char s[64];
-  if(type->ty == PTR){
+  if(type->ty == PTR || type->ty == ARRAY ){
     if(type->ptr_of->ty == INT){
       sprintf(s, "add %s, %s", reg, reg);
       out(s);
@@ -338,7 +337,7 @@ void gen(Node *node){
     // 左辺値として評価したのち、右辺値に変換している
     int size = gen_lval(node);
 
-    /* Transform array into pointer after the array size was allocated. */
+    /* An array ignores right-value. */
     if(lookup(node->name)->type->ty == ARRAY){
       return;
     }
@@ -448,14 +447,14 @@ void gen(Node *node){
   
   switch(node->ty){
   case '+':
-    if(node->lhs->ty == ND_IDENT && lookup(node->lhs->name)->type->ty == PTR){
-      adjust("rdi", lookup(node->lhs->name)->type);
+    if(node->lhs->ty == ND_IDENT){
+      adjust(lookup(node->lhs->name)->type, "rdi");
     }
     out("add rax, rdi");
     break;
   case '-':
-    if(node->lhs->ty == ND_IDENT && lookup(node->lhs->name)->type->ty == PTR){
-      adjust("rdi", lookup(node->lhs->name)->type);
+    if(node->lhs->ty == ND_IDENT){
+      adjust(lookup(node->lhs->name)->type, "rdi");
     }
     out("sub rax, rdi");
     break;

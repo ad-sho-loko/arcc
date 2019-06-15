@@ -61,16 +61,6 @@ static Node *new_node_ident(char* name){
     error("parse.c : Line %d \n  ERROR: name '%s' is not defined. ", __LINE__, name);
   }
 
-  // 配列型の暗黙の型変換
-  /*
-  if(map_getv(local_scope, name)->type->ty == ARRAY){
-    Node *n = malloc(sizeof(Node));
-    n->ty = ND_IDENT;
-    n->name = name;
-    return new_node(ND_DEREF, n, NULL);
-  }
-  */
-  
   Node *n = malloc(sizeof(Node));
   n->ty = ND_IDENT;
   n->name = name;
@@ -235,13 +225,6 @@ Node* term(){
     if(consume('[')){
       Token *num = expect2(TK_NUM, "parse.c : Line %d \n ERROR : A inner of array must be a number.", __LINE__);
       Type *array = wrap_array(type, num->val);
-
-      // Meanwhile initialize pointer.
-      /** int a[10]  =>  int *a = <addr>  */
-      // Node *left = new_node_ident(t->name);
-      // Node *right = new_node(ND_ADR, new_node_ident(t->name), NULL);
-      // Node *n = new_node('=', left, right);
-      
       expect2(']', "parse.c : Line %d \n ERROR: An array must be closed.", __LINE__);
       return new_node_decl_ident(array, t->name);
     }
