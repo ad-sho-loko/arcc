@@ -52,11 +52,6 @@ static VarTable* create_var_table(Map *env){
   for(int i=0; i < env->values->len; i++){
     Var *v = ((Var*)env->values->data[i]);
     offset+= get_type_sizeof(v->type);
-
-    /* Transform array into pointer after the array size was allocated. */
-    if(v->type->ty == ARRAY){
-      v->type->ty = PTR;
-    }
     map_put(m, v->name, new_var_desc(v->type, get_type_sizeof(v->type),  offset));
   }
 
@@ -165,52 +160,18 @@ void gen_top(){
   }
 }
 
-// 左辺の文法を示す
+// 左辺の評価
 int gen_lval(Node *node){
-
-  if(node->ty == ND_NUM){
-    outf("push %d", node->val);
-    return 0;
+  if(node->ty != ND_IDENT && node->ty != ND_DEREF){
+    error("ERROR : LVAL ERROR = %d", node->ty);
   }
 
-  if(node->ty == '+' || node->ty == '-'){
-    int s1 = gen_lval(node->lhs);
-    int s2 = gen_lval(node->rhs); // fix
-    out("pop rdi");
-    out("pop rax");
-
-    // todo : refactoring soon...
-    if(node->lhs->ty == ND_IDENT && lookup(node->lhs->name)->type->ty == PTR){ // fix
-      adjust("rdi", lookup(node->lhs->name)->type);
-    }
-
-    
-    if(node->ty == '+') out("add rax, rdi");
-    else out("sub rax, rdi");
-    out("push rax");
-    return s1;
-  }
-
-  // &x
-  if(node->ty == ND_ADR){
-    int size = gen_lval(node->lhs);
-    out("pop rax");
-    outf("lea rax, [rax]");
-    out("push rax");
-    return size;
-  }
-  
   if(node->ty == ND_DEREF){
-
-    // Skip the deref once.
-    int size = gen_lval(node->lhs);
-    // out("pop rax");
-    // out("mov rax, [rax]");
-    // out("push rax");
-    
-    return size;
+    // 左辺のデリファレンス値は右辺値として評価する必要がある
+    gen(node->lhs);
+    return 8;
   }
-  
+
   // ND_IDENT
   int offset = lookup(node->name)->offset;
   out("mov rax, rbp");
@@ -349,7 +310,6 @@ void gen(Node *node){
     gen(node->rhs);
     out("pop rdi");
     out("pop rax");
-
     outf("mov %s [rax], %s", mod[size], from[size]);
     out("push rdi");
     return;
@@ -375,7 +335,14 @@ void gen(Node *node){
 
   // x
   if(node->ty == ND_IDENT){
+    // 左辺値として評価したのち、右辺値に変換している
     int size = gen_lval(node);
+
+    /* Transform array into pointer after the array size was allocated. */
+    if(lookup(node->name)->type->ty == ARRAY){
+      return;
+    }
+    
     // [HERE] A variable address at the top of stack.
     out("pop rax");
 

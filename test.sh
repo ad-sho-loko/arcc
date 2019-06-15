@@ -166,5 +166,13 @@ try 7 'int main(){int a[2]; *(a+1) = 7; return *(a+1);}'
 try 1 'int main(){int a[2]; int *p; *a = 1; *(a + 1) = 2; p = a; return *p;}'
 # try 2 'int main(){int a[2]; int *p; *a = 1; *(a + 1) = 2; p = a; return *(p + 1);}'
 # try 3 'int main(){int a[2]; int *p; *a = 1; *(a + 1) = 2; p = a; return *p + *(p + 1);}'
+
+
+
 echo ok
+
+
+# rare case(can compile...)
+# *(a + *(p = a)) = 2 + 1 << 2 >> 2; 左辺にも式を書くことが可能.
+
 

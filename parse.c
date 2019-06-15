@@ -57,17 +57,19 @@ static Node *new_node_num(int val){
 }
 
 static Node *new_node_ident(char* name){
-
   if(!map_contains(local_scope, name)){
     error("parse.c : Line %d \n  ERROR: name '%s' is not defined. ", __LINE__, name);
   }
-  
+
+  // 配列型の暗黙の型変換
+  /*
   if(map_getv(local_scope, name)->type->ty == ARRAY){
     Node *n = malloc(sizeof(Node));
     n->ty = ND_IDENT;
     n->name = name;
-    return new_node(ND_ADR, n, NULL);
+    return new_node(ND_DEREF, n, NULL);
   }
+  */
   
   Node *n = malloc(sizeof(Node));
   n->ty = ND_IDENT;
@@ -179,17 +181,16 @@ Node* ident(Token *tkn){
   }
   
   // Using a variable.
-
   // Using a variable(array).
   if(consume('[')){
     Node *idt = new_node_ident(tkn->name);
     Node *num = term();
     expect(']');
-    /** Transform an type of array into a pointer. ex) a[2] => *(a + 2) => *(&a + 2) **/
+    /** Transform an type of array into a pointer. ex) a[2] => *(a + 2)  **/
     return new_node(ND_DEREF, new_node('+', idt, num), NULL);
   }
 
-  // Using a variable(not array)
+  // Using a variable
   Node *n = new_node_ident(tkn->name);
   
   // Post increment, Post decrement
@@ -237,8 +238,8 @@ Node* term(){
 
       // Meanwhile initialize pointer.
       /** int a[10]  =>  int *a = <addr>  */
-      // Node *left = new_node(ND_DEREF, new_node_ident(t->name), NULL);
-      //Node *right = new_node(ND_ADR, new_node_ident(t->name), NULL);
+      // Node *left = new_node_ident(t->name);
+      // Node *right = new_node(ND_ADR, new_node_ident(t->name), NULL);
       // Node *n = new_node('=', left, right);
       
       expect2(']', "parse.c : Line %d \n ERROR: An array must be closed.", __LINE__);
