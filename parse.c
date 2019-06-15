@@ -1,14 +1,16 @@
 #include <stdio.h>
 #include <stdarg.h>
+#include <stdbool.h>
 #include "arcc.h"
 
 static int pos = 0;
 static Map *local_scope;
 
-static void init_local_scope(char *func_name){
-  local_scope = new_map();
+static Map* init_local_scope(char *func_name){
+  Type *type = malloc(sizeof(Type));
+  type->ty = FUNC;
   // todo : funcのかぶりvalidation
-  map_putm(global_env, func_name, local_scope);
+  return register_env(func_name, type);
 }
 
 static int get_type_sizeof(Type *type){
@@ -61,12 +63,16 @@ static Node *new_node_num(int val){
 }
 
 static Node *new_node_ident(char* name){
-  if(!map_contains(local_scope, name)){
-    error("parse.c : Line %d \n  ERROR: name '%s' is not defined. ", __LINE__, name);
-  }
-
   Node *n = malloc(sizeof(Node));
   n->ty = ND_IDENT;
+
+  if(!map_contains(local_scope, name)){
+    if(!map_contains(global_env->map, name)){
+      error("parse.c : Line %d \n  ERROR: name '%s' is not defined. ", __LINE__, name);
+    }
+    n->ty = ND_GIDENT;
+  }
+  
   n->name = name;
   return n;
 }
@@ -77,11 +83,17 @@ static Node *new_node_dummy(){
   return n;
 }
 
+/* Register the variable to the global environment. */
+static Node *new_node_decl_global_ident(Type* type, char* name){
+  register_env(name, type);
+  /* Indeed, No nessesarry to return a node. */
+  return new_node_dummy();
+}
+
 /* Register the variable to the current environment. */
 static Node *new_node_decl_ident(Type* type, char* name){
   map_putv(local_scope, name, new_var(type, name));
   /* Indeed, No nessesarry to return a node. */
-  // Node *n =  n->name = name;
   return new_node_dummy();
 }
 
@@ -185,7 +197,7 @@ Node* ident(Token *tkn){
     expect(')');
     return n;
   }
-  
+
   // Using a variable.
   // Using a variable(array).
   if(consume('[')){
@@ -225,15 +237,6 @@ Node* term(){
   // [x] int a = 1, b = 2;
   if(((Token*)(tokens->data[pos]))->ty == TK_TYPE){
     Type *type = parse_type();
-
-      /*
-      ((Token*)(tokens->data[pos]))->type;
-    expect(TK_TYPE);
-
-    while(consume('*')){
-      type = wrap_pointer(type);
-      }*/
-    
     Token *t = ((Token*)(tokens->data[pos]));
     if(map_contains(local_scope, t->name)){
       error("parse.c : Line %d \n  ERROR: name '%s' is already defined. ", __LINE__, t->name);
@@ -576,43 +579,55 @@ void func_body(){
   }
 }
 
-void func(){
-    // A return type
-    expect2(TK_TYPE, "Line.%d in parse.c : 関数の宣言は型から始める必要があります", __LINE__);
+// Declare a function.
+void func(Type *type, Token *t){
+  // A return type
+  // expect2(TK_TYPE, "Line.%d in parse.c : 関数の宣言は型から始める必要があります", __LINE__);
+  
+  // A function name
+  //Token *t = expect2(TK_IDENT, "Line.%d in parse.c : 関数の宣言から始める必要があります", __LINE__);
 
-    // A function name
-    Token *t = expect2(TK_IDENT, "Line.%d in parse.c : 関数の宣言から始める必要があります", __LINE__);
-    Node *n = new_node_decl_func(t->name);
-    push_back(nodes, n);
-    
-    // Initialize (set a local environment)
-    init_local_scope(t->name);
-    
-    // Dummy Arguments
-    expect('(');
-    while(((Token*)tokens->data[pos])->ty != ')'){
-      assume(TK_TYPE);
-      push_back(n->items, term());
-      consume(',');
-      // todo : refine.
-      n->arg_num++;
-    }
-    expect(')');
+  Node *n = new_node_decl_func(t->name);
+  push_back(nodes, n);
+  
+  // Initialize (set a local environment)
+  local_scope = init_local_scope(t->name);
+  
+  // Dummy Arguments
+  expect('(');
+  while(((Token*)tokens->data[pos])->ty != ')'){
+    assume(TK_TYPE);
+    push_back(n->items, term());
+    consume(',');
+    // todo : refine.
+    n->arg_num++;
+  }
+  expect(')');
+  
+  // A function body
+  expect('{');
+  func_body();
+  expect('}');    
+  push_back(nodes, new_node(ND_FUNC_END, NULL, NULL));  
+}
 
-    // A function body
-    expect('{');
-    func_body();
-    expect('}');    
-    push_back(nodes, new_node(ND_FUNC_END, NULL, NULL));  
+// Declare a global variable.
+void global_var(Type *type, Token *token){
+  new_node_decl_global_ident(type, token->name);
+  expect(';');
 }
 
 void toplevel(){
   while(tkn()->ty != TK_EOF){
-    func();
+    Type *type = parse_type();
+    Token *token =expect2(TK_IDENT, "Line.%d in parse.c : 関数の宣言から始める必要があります", __LINE__);
+
+    if(tkn()->ty =='('){
+      func(type, token);
+    }else{
+      global_var(type, token);
+    }
     // NEXT : struct(union)
-    // NEXT : global variables
     // NEXT : macro
   }
-  // todo : Node構築後の作業 : ポインタの加減を調整する.
-  // walk_nodes();
 }

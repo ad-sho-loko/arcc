@@ -2,11 +2,11 @@
 #include "arcc.h"
 Vector *nodes;
 Vector *tokens;
-Map *global_env;
+Env *global_env;
 
 void init(){
   nodes = new_vector();
-  global_env = new_map();
+  global_env = init_env();
 }
 
 int main(int argc, char **argv) {
@@ -25,7 +25,7 @@ int main(int argc, char **argv) {
   // parse
   toplevel();
   debug_vector_nodes(nodes);
-  debug_variable_table(nodes);
+  // debug_variable_table(nodes);
 
   // generate x64
   gen_top();

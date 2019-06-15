@@ -68,11 +68,12 @@ enum{
   ND_LSHIFT,
   ND_RSHIFT,
   ND_DO_WHILE,
-  ND_DUMMY
+  ND_DUMMY,
+  ND_GIDENT,
 };
 
 typedef struct Type{
-  enum {INT, PTR, ARRAY} ty;
+  enum {INT, PTR, ARRAY, FUNC} ty;
   struct Type *ptr_of;
   int array_size;
 }Type;
@@ -147,10 +148,25 @@ void stack_push(Stack *stack, void* v);
 void *stack_pop(Stack *stack);
 void *stack_peek(Stack *stack);
 
+// environment
+typedef struct {
+  Map *map;
+} Env;
+
+typedef struct{
+  Type *type;
+  Map *scope;
+} EnvDesc;
+
+Env *init_env();
+Map *register_env(char *name, Type *type);
+EnvDesc *get_env_desc(char *name);
+Map *get_env_scope(char *name);
+
 // global variables.
 extern Vector *nodes;
 extern Vector *tokens;
-extern Map *global_env;
+extern Env *global_env;
 
 void error(char* fmt, ...);
 void out(char* code);

@@ -105,10 +105,12 @@ char *str_type(int ty){
   case 0 : return "INT";
   case 1 : return "PTR";
   case 2 : return "ARRAY";
+  case 3 : return "FUNC";
   } 
   return "Unknown";
 }
 
+/* TODO 
 void debug_variable_table(){
   fprintf(stderr, "======Variable======\n");
   for(int i=0; i<global_env->keys->len; i++){
@@ -123,6 +125,7 @@ void debug_variable_table(){
   }
   fprintf(stderr, "\n");
 }
+*/
 
 // map
 Map* new_map(){
@@ -191,6 +194,29 @@ int map_contains(Map *m, char* key){
   if (map_len(m) == 0)
     return 0;
   return map_get(m, key) != NULL;
+}
+
+// env
+Env *init_env(){
+  Env *e = malloc(sizeof(Env));
+  e->map = new_map();
+  return e;
+}
+
+Map *register_env(char *name, Type *type){
+  EnvDesc *d = malloc(sizeof(EnvDesc));
+  d->type = type;
+  d->scope = new_map();
+  map_put(global_env->map, name, d);
+  return d->scope;
+}
+
+EnvDesc *get_env_desc(char *name){
+  return map_get(global_env->map, name);
+}
+
+Map *get_env_scope(char *name){
+  return get_env_desc(name)->scope;
 }
 
 Stack *new_stack(){
@@ -300,6 +326,7 @@ char* stringfy_node(int node_kind){
   case 283: return "ND_RSHIFT";
   case 284: return "ND_DO_WHILE";
   case 285: return "ND_DUMMY";
+  case 286: return "ND_IDENT";
   default: return "Unknown";
   }
 }

@@ -2,14 +2,14 @@
 #include <string.h>
 #include "arcc.h"
 
-typedef struct Env{
+typedef struct{
   int n;
   char *start;
   char *then;
   char *els;
   char *last;
   char *end;
-} Env;
+} Labeler;
 
 typedef struct {
   Map *table;
@@ -23,7 +23,8 @@ typedef struct {
 } VarDesc;
 
 static int next_label = 1;
-static VarTable* var_table;
+static VarTable* global_table;
+static VarTable* local_table;
 
 static int get_type_sizeof(Type *type){
   if(type->ty == INT){
@@ -37,8 +38,12 @@ static int get_type_sizeof(Type *type){
   if(type->ty == ARRAY){
     return type->array_size * get_type_sizeof(type->ptr_of);
   }
-  
-  error("parse.c : Line.%d\n  ERROR :No such a type.");
+
+  if(type->ty == FUNC){
+    return 8;
+  }
+
+  printd("A Unknown type Detected when calling get_type_sizeof()");
   return 0;
 }
 
@@ -51,7 +56,30 @@ static VarDesc *new_var_desc(Type *type, int size, int offset){
 }
 
 static VarDesc *lookup(char *name){
-  return map_get(var_table->table, name);
+  VarDesc* lvar = map_get(local_table->table, name);
+  if (lvar != NULL){
+    return lvar;
+  }
+
+  VarDesc * gvar = map_get(global_table->table, name);
+  if (gvar != NULL){
+    return gvar;
+  }
+  
+  error("gen_x64.c ERROR : name '%s' is undefined. ", name);
+  return NULL;
+}
+
+// TODO!!!!!
+static VarTable* create_gvar_table(Map *env){
+  Map* m = new_map();
+  for(int i=0; i < env->values->len; i++){
+    EnvDesc* e = ((EnvDesc*)env->values->data[i]);
+    map_put(m, env->keys->data[i], new_var_desc(e->type, 0, 0));
+  }
+  VarTable *tbl = malloc(sizeof(VarTable));
+  tbl->table = m;
+  return tbl;
 }
 
 static VarTable* create_var_table(Map *env){
@@ -75,15 +103,15 @@ static char *new_label(char *sign, int cnt){
   return s;
 }
 
-static Env *new_env(int n){
-  Env *e = malloc(sizeof(Env));
-  e->n = n;
-  e->start = new_label("begin", n);
-  e->then = new_label("then", n);
-  e->els = new_label("else", n);
-  e->last = new_label("last", n);
-  e->end = new_label("end", n);
-  return e;
+static Labeler *new_labeler(int n){
+  Labeler *l = malloc(sizeof(Labeler));
+  l->n = n;
+  l->start = new_label("begin", n);
+  l->then = new_label("then", n);
+  l->els = new_label("else", n);
+  l->last = new_label("last", n);
+  l->end = new_label("end", n);
+  return l;
 }
 
 // NOT COOL....
@@ -103,7 +131,7 @@ void adjust( Type* type, char *reg){
   }
 }
 
-static Stack *env_stack;
+static Stack *labeler_stack;
 
 // todo : now only unitl 2 args
 static char *regs[2] = {"rdi", "rsi"};
@@ -121,27 +149,27 @@ static char *from[9] = {"","","","","edi","","","","rdi"};
 void gen_top(){
 
   // init
-  env_stack = new_stack();
+  labeler_stack = new_stack();
+  global_table = create_gvar_table(global_env->map);
   
   printf(".intel_syntax noprefix\n");
   printf(".global main\n");
-  
   for(int i=0; i<nodes->len; i++){
     if(((Node*)nodes->data[i])->ty == ND_DEC_FUNC){
       // prologue
       Node *n = (Node*)nodes->data[i];
 
       // The scope changed.
-      var_table = create_var_table(map_getm(global_env, n->name));
+      local_table = create_var_table(get_env_scope(n->name));
       
       printf("%s:\n",n->name);
       out("push rbp");
       out("mov rbp, rsp");
-      outf("sub rsp, %d", do_align(var_table->size, 16));
+      outf("sub rsp, %d", do_align(local_table->size, 16));
 
       // Move args from register into stack.
       for(int i=0; i < n->arg_num; i++){
-        char *key = var_table->table->keys->data[i];
+        char *key = local_table->table->keys->data[i];
         int size = lookup(key)->size;
         outf("mov %s [rbp-%d], %s", mod[size] , (i+1) * size, reg[i][size]);
       }
@@ -161,7 +189,7 @@ void gen_top(){
 
 // 左辺の評価
 int gen_lval(Node *node){
-  if(node->ty != ND_IDENT && node->ty != ND_DEREF){
+  if(node->ty != ND_IDENT && node->ty != ND_GIDENT && node->ty != ND_DEREF){
     error("ERROR : LVAL ERROR = %d", node->ty);
   }
 
@@ -171,6 +199,11 @@ int gen_lval(Node *node){
     return 8;
   }
 
+  if(node->ty == ND_GIDENT){
+    outf("push %s[rip]", node->name);
+    return lookup(node->name)->size;
+  }
+  
   // ND_IDENT
   int offset = lookup(node->name)->offset;
   out("mov rax, rbp");
@@ -188,7 +221,7 @@ void gen(Node *node){
     int lcnt = next_label++;
     // todo : refactoring. 下を使う.
     // Env *e = new_env(lcnt);
-    // stack_push(env_stack, e);
+    // stack_push(labeler_stack, e);
     
     if(node->els != NULL){
       outf("jne %s", new_label("else", lcnt));
@@ -200,7 +233,7 @@ void gen(Node *node){
     gen(node->then);
     outf("jmp %s", new_label("end", lcnt));
     
-    // e = stack_pop(env_stack);
+    // e = stack_pop(labeler_stack);
     if(node->els != NULL){
       printf("%s:\n", new_label("else", lcnt));
       gen(node->els);
@@ -210,77 +243,77 @@ void gen(Node *node){
   }
 
   if(node->ty == ND_WHILE){
-    Env *e = new_env(next_label);
+    Labeler *l = new_labeler(next_label);
     next_label++;
 
-    stack_push(env_stack, e);
-    printf("%s:\n", e->start);
-    printf("%s:\n", e->last); // forとの互換性のためwhileにも残しているが微妙.
+    stack_push(labeler_stack, l);
+    printf("%s:\n", l->start);
+    printf("%s:\n", l->last); // forとの互換性のためwhileにも残しているが微妙.
     gen(node->cond);
     
     out("pop rax");
     out("cmp rax, 1");
-    outf("jne %s", e->end);
+    outf("jne %s", l->end);
     gen(node->then);
-    e = stack_pop(env_stack);
-    outf("jmp %s", e->start);
-    printf("%s:\n", e->end);
+    l = stack_pop(labeler_stack);
+    outf("jmp %s", l->start);
+    printf("%s:\n", l->end);
     return;
   }
 
   if(node->ty == ND_DO_WHILE){
-    Env *e = new_env(next_label);
+    Labeler *l = new_labeler(next_label);
     next_label++;
-    stack_push(env_stack, e);
-    printf("%s:\n", e->start);
+    stack_push(labeler_stack, l);
+    printf("%s:\n", l->start);
     gen(node->then);
     gen(node->cond);
     out("pop rax");
     out("cmp rax, 1");
-    outf("je %s", e->start);
-    e = stack_pop(env_stack);
+    outf("je %s", l->start);
+    l = stack_pop(labeler_stack);
     return;
   }
 
   if(node->ty == ND_FOR){
-    Env *e = new_env(next_label);
+    Labeler *l = new_labeler(next_label);
     next_label++;
 
-    stack_push(env_stack, e);
+    stack_push(labeler_stack, l);
     
     if(node->init != NULL){
       gen(node->init);
     }
-    printf("%s:\n", e->start);
+    printf("%s:\n", l->start);
     
     if(node->cond != NULL){
       gen(node->cond);
       out("pop rax");
       out("cmp rax, 1");
-      outf("jne %s", e->end);
+      outf("jne %s", l->end);
     }
     
     gen(node->then);
-    e = stack_pop(env_stack);
+    l = stack_pop(labeler_stack);
     
-    printf("%s:\n", e->last);
+    printf("%s:\n", l->last);
     if(node->last != NULL){
       gen(node->last);
     }
     
-    outf("jmp %s", e->start);
-    printf("%s:\n", e->end);
+    outf("jmp %s", l->start);
+    printf("%s:\n", l->end);
 
     return; 
   }
 
   if(node->ty == ND_BREAK){
-    outf("jmp %s", ((Env*)stack_peek(env_stack))->end);
+    outf("jmp %s", ((Labeler*)stack_peek(labeler_stack))->end);
     return;
   }
 
   if(node->ty == ND_CONTINUE){
-    outf("jmp %s", ((Env*)stack_peek(env_stack))->last);
+    outf("jmp %s", ((Labeler*)stack_peek(labeler_stack))->last);
     return;
   }
   
@@ -333,7 +366,7 @@ void gen(Node *node){
   }
 
   // x
-  if(node->ty == ND_IDENT){
+  if(node->ty == ND_IDENT || node->ty == ND_GIDENT){
     // 左辺値として評価したのち、右辺値に変換している
     int size = gen_lval(node);
 
