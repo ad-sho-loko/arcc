@@ -75,7 +75,7 @@ static VarTable* create_gvar_table(Map *env){
   Map* m = new_map();
   for(int i=0; i < env->values->len; i++){
     EnvDesc* e = ((EnvDesc*)env->values->data[i]);
-    map_put(m, env->keys->data[i], new_var_desc(e->type, 0, 0));
+    map_put(m, env->keys->data[i], new_var_desc(e->type, get_type_sizeof(e->type), 0));
   }
   VarTable *tbl = malloc(sizeof(VarTable));
   tbl->table = m;
@@ -131,6 +131,17 @@ void adjust( Type* type, char *reg){
   }
 }
 
+static void print_dot_comm(){
+  Map *m = global_env->map;
+  for(int i=0; i<m->keys->len; i++){
+    char *name = m->keys->data[i];
+    EnvDesc* env = m->values->data[i];
+    if(env->type->ty != FUNC){
+      outf(".comm %s, %d", name, get_type_sizeof(env->type));
+    }
+  }
+}
+
 static Stack *labeler_stack;
 
 // todo : now only unitl 2 args
@@ -143,17 +154,21 @@ static char *reg[2][9] = {
 };
 
 static char *mod[9] = {"","BYTE PTR","","","DWORD PTR","","","","QWORD PTR"};
+static char *to[9] = {"","","","","eax","","","","rax"};
 static char *from[9] = {"","","","","edi","","","","rdi"};
 
 // TODO : 出力にコメントをつける
 void gen_top(){
 
+  printf(".intel_syntax noprefix\n");
+  printf(".global main\n\n");
+  // .comm
+  print_dot_comm();
+  
   // init
   labeler_stack = new_stack();
   global_table = create_gvar_table(global_env->map);
   
-  printf(".intel_syntax noprefix\n");
-  printf(".global main\n");
   for(int i=0; i<nodes->len; i++){
     if(((Node*)nodes->data[i])->ty == ND_DEC_FUNC){
       // prologue
@@ -200,7 +215,8 @@ int gen_lval(Node *node){
   }
 
   if(node->ty == ND_GIDENT){
-    outf("push %s[rip]", node->name);
+    outf("lea rax, %s[rip]", node->name);
+    out("push rax");
     return lookup(node->name)->size;
   }
   
@@ -342,6 +358,7 @@ void gen(Node *node){
     gen(node->rhs);
     out("pop rdi");
     out("pop rax");
+    //outf("mov [%s], %s", to[size], from[size]);
     outf("mov %s [rax], %s", mod[size], from[size]);
     out("push rdi");
     return;

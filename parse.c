@@ -212,7 +212,6 @@ Node* ident(Token *tkn){
     return n;
   }
 
-  // Using a variable.
   // Using a variable(array).
   if(consume('[')){
     Node *idt = new_node_ident(tkn->name);

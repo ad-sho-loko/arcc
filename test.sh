@@ -169,7 +169,7 @@ try 1 'int main(){int a[2]; int *p; *a = 1; *(a + 1) = 2; p = a; return *p;}'
 try 2 'int main(){int a[2]; int *p; *a = 1; *(a + 1) = 2; p = a; return *(p + 1);}'
 try 3 'int main(){int a[2]; int *p; *a = 1; *(a + 1) = 2; p = a; return *p + *(p + 1);}'
 
-# try 5 'int a; int main(){a = 5; return 5;}'
+try 5 'int a; int main(){a = 5; return a;}'
 
 echo ok
 # rare case(can compile...)
