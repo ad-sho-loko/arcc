@@ -6,13 +6,6 @@
 static int pos = 0;
 static Map *local_scope;
 
-static Map* init_local_scope(char *func_name){
-  Type *type = malloc(sizeof(Type));
-  type->ty = FUNC;
-  // todo : funcのかぶりvalidation
-  return register_env(func_name, type);
-}
-
 static int get_type_sizeof(Type *type){
   if(type->ty == INT){
     return 4;
@@ -32,6 +25,14 @@ static int get_type_sizeof(Type *type){
 
 static Var *lookup(char *name){
   return map_getv(local_scope, name);
+}
+
+static bool global_contains(char *name){
+  return map_getv(global_env->map, name) != NULL;
+}
+
+static bool local_contains(char *name){
+  return lookup(name) != NULL;
 }
 
 static Var *new_var(Type *type, char* name){
@@ -85,6 +86,9 @@ static Node *new_node_dummy(){
 
 /* Register the variable to the global environment. */
 static Node *new_node_decl_global_ident(Type* type, char* name){
+  if(global_contains(name)){
+    error("parse.c : Line %d \n  ERROR: name '%s' is already defined. ", __LINE__, name);
+  }
   register_env(name, type);
   /* Indeed, No nessesarry to return a node. */
   return new_node_dummy();
@@ -92,6 +96,10 @@ static Node *new_node_decl_global_ident(Type* type, char* name){
 
 /* Register the variable to the current environment. */
 static Node *new_node_decl_ident(Type* type, char* name){
+  if(local_contains(name)){
+    error("parse.c : Line %d \n  ERROR: name '%s' is already defined. ", __LINE__, name);
+  }
+
   map_putv(local_scope, name, new_var(type, name));
   /* Indeed, No nessesarry to return a node. */
   return new_node_dummy();
@@ -128,6 +136,12 @@ static Type* wrap_pointer(Type* t){
   wrapper->ty = PTR;
   wrapper->ptr_of = t;
   return wrapper;
+}
+
+static Type* new_func_type(){
+  Type *t = malloc(sizeof(Type));
+  t->ty = FUNC;
+  return t;
 }
 
 static Token* tkn(){
@@ -238,9 +252,6 @@ Node* term(){
   if(((Token*)(tokens->data[pos]))->ty == TK_TYPE){
     Type *type = parse_type();
     Token *t = ((Token*)(tokens->data[pos]));
-    if(map_contains(local_scope, t->name)){
-      error("parse.c : Line %d \n  ERROR: name '%s' is already defined. ", __LINE__, t->name);
-    }
     expect(TK_IDENT);
 
     /** Declare and Initialize the array **/
@@ -264,9 +275,6 @@ Node* term(){
   /** Areressing **/
   if(consume('&')){
     Token *t = expect2(TK_IDENT, "parse.c : Line %d \n ERROR : アドレス演算子のあとは必ず変数です", __LINE__);
-    if(!map_contains(local_scope, t->name)){
-      error("parse.c : Line %d \n  ERROR: name '%s' is not defined. ", __LINE__, t->name);
-    }
     return new_node(ND_ADR, new_node_ident(t->name), NULL);
   }
   
@@ -591,7 +599,7 @@ void func(Type *type, Token *t){
   push_back(nodes, n);
   
   // Initialize (set a local environment)
-  local_scope = init_local_scope(t->name);
+  local_scope =  register_env(t->name, new_func_type());
   
   // Dummy Arguments
   expect('(');
