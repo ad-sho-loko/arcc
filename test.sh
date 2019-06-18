@@ -169,10 +169,16 @@ try 1 'int main(){int a[2]; int *p; *a = 1; *(a + 1) = 2; p = a; return *p;}'
 try 2 'int main(){int a[2]; int *p; *a = 1; *(a + 1) = 2; p = a; return *(p + 1);}'
 try 3 'int main(){int a[2]; int *p; *a = 1; *(a + 1) = 2; p = a; return *p + *(p + 1);}'
 
+try 97 "int main(){char ch; ch = 'a'; return ch;}"
+try 98 "int main(){char ch; ch = 'a'; ch = ch + 1; return ch;}"
+try 97 "int main(){char ch; ch = 'b'; ch = ch - 1; return ch;}"
+
+# bug
+# try 3 'int main(){char x[3]; x[0] = -1; x[1] = 2; int y; y = 4; return x[0] + y;}'
+
 try 5 'int a; int main(){a = 5; return a;}'
 try 10 'int a[10]; int main(){a[2] = 10; return a[2];}'
-
-try 97 "int main(){char ch; ch = 'a'; return ch;}"
+try 97 "char a; int main(){a = 'a'; return a;}"
 
 echo ok
 # rare case(can compile...)
