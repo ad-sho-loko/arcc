@@ -620,6 +620,11 @@ void func(Type *type, Token *t){
 
 // Declare a global variable.
 void global_var(Type *type, Token *token){
+  if(consume('[')){
+    Token *num = expect2(TK_NUM, "parse.c : Line %d \n ERROR : A inner of array must be a number.", __LINE__);
+    type = wrap_array(type, num->val);
+    expect(']');
+  }
   new_node_decl_global_ident(type, token->name);
   expect(';');
 }
