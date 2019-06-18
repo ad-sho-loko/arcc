@@ -172,6 +172,8 @@ try 3 'int main(){int a[2]; int *p; *a = 1; *(a + 1) = 2; p = a; return *p + *(p
 try 5 'int a; int main(){a = 5; return a;}'
 try 10 'int a[10]; int main(){a[2] = 10; return a[2];}'
 
+try 97 "int main(){char ch; ch = 'a'; return ch;}"
+
 echo ok
 # rare case(can compile...)
 # *(a + *(p = a)) = 2 + 1 << 2 >> 2; 左辺にも式を書くことが可能.

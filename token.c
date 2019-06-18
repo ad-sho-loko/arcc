@@ -13,6 +13,10 @@ static bool is_alnum(char ch){
   return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || (ch >= '0'&& ch <= '9') || (ch == '_');
 }
 
+static bool is_ascii(char ch){
+  return ch >= 0 && ch <= 255;
+}
+
 static Token *new_token(int ty, char* input, int val){
   Token *t = malloc(sizeof(Token));
   t->ty = ty;
@@ -202,6 +206,12 @@ Vector *tokenize(char *p){
       p+=2;
       continue;
     }    
+
+    if(*p == '\'' && *(p+2) == '\''){
+      push_back(tokens, new_token(TK_CHAR, p, *(p+1)));
+      p+=3;
+      continue;
+    }
     
     if(*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' || *p == ')' || *p == '<' || *p == '>' || *p == ';' || *p == '=' || *p == '{' || *p == '}' || *p == ',' || *p == '%' || *p == '&' || *p == '|' || *p == '^' || *p == '~' || *p == '?' || *p == ':' || *p == '[' || *p == ']'){
       push_back(tokens, new_token(*p, p, 0));
@@ -265,6 +275,12 @@ Vector *tokenize(char *p){
     if(keyword(p, "int")){
       push_back(tokens, new_token_type(INT, p));
       p+=3;
+      continue;
+    }
+
+    if(keyword(p, "char")){
+      push_back(tokens, new_token_type(CHAR, p));
+      p+=4;
       continue;
     }    
     

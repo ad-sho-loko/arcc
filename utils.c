@@ -106,26 +106,10 @@ char *str_type(int ty){
   case 1 : return "PTR";
   case 2 : return "ARRAY";
   case 3 : return "FUNC";
+  case 4 : return "CHAR";
   } 
   return "Unknown";
 }
-
-/* TODO 
-void debug_variable_table(){
-  fprintf(stderr, "======Variable======\n");
-  for(int i=0; i<global_env->keys->len; i++){
-    fprintf(stderr, "%s : {\n", global_env->keys->data[i]);
-    Map* local_env = global_env->values->data[i];
-    for(int j=0; j < local_env->keys->len; j++){
-      char *key = local_env->keys->data[j];
-      Var *var =  (Var*)local_env->values->data[j];
-      fprintf(stderr, "    %s : %s\n", key, str_type(var->type->ty));
-    }
-    fprintf(stderr, "}\n");
-  }
-  fprintf(stderr, "\n");
-}
-*/
 
 // map
 Map* new_map(){
@@ -286,6 +270,8 @@ char* stringfy_token(int tkn_kind){
   case 287: return "TK_AND_EQ";
   case 288: return "TK_OR_EQ";
   case 289: return "TK_XOR_EQ";
+  case 290: return "TK_DO";
+  case 291: return "TK_CHAR";
   default: return "Unknown";
   }
 }

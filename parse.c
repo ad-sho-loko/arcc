@@ -15,6 +15,10 @@ static int get_type_sizeof(Type *type){
     return 8;
   }
 
+  if(type->ty == CHAR){
+    return 1;
+  }
+  
   if(type->ty == ARRAY){
     return type->array_size * get_type_sizeof(type->ptr_of);
   }
@@ -285,6 +289,11 @@ Node* term(){
   Token *tkn = ((Token*)(tokens->data[pos]));
   if(consume(TK_NUM)){
     return new_node_num(tkn->val);
+  }
+  
+  if(tkn->ty == TK_CHAR){
+    Token *t = expect2(TK_CHAR, "parse.c : Line.%d\n ERROR: expected ");
+    return new_node_num(t->val);
   }
   
   if(consume(TK_IDENT)){

@@ -27,6 +27,10 @@ static VarTable* global_table;
 static VarTable* local_table;
 
 static int get_type_sizeof(Type *type){
+  if(type->ty == CHAR){
+    return 1;
+  }
+  
   if(type->ty == INT){
     return 4;
   }
@@ -137,7 +141,9 @@ static void print_dot_comm(){
     char *name = m->keys->data[i];
     EnvDesc* env = m->values->data[i];
     if(env->type->ty != FUNC){
-      outf(".comm %s, %d", name, get_type_sizeof(env->type));
+      printf(".data\n");
+      outf("%s: .zero", name, get_type_sizeof(env->type));
+      // outf(".comm %s, %d", name, get_type_sizeof(env->type));
     }
   }
 }
@@ -149,20 +155,21 @@ static char *regs[2] = {"rdi", "rsi"};
 
 // todo : refactoring
 static char *reg[2][9] = {
-  /* 1st */  {"","","","","edi","","","","rdi",},
-  /* 2nd */  {"","","","","esi","","","","rsi",}
+  /* 1st */  {"","dil","","","edi","","","","rdi",},
+  /* 2nd */  {"","sil","","","esi","","","","rsi",}
 };
 
 static char *mod[9] = {"","BYTE PTR","","","DWORD PTR","","","","QWORD PTR"};
-static char *to[9] = {"","","","","eax","","","","rax"};
-static char *from[9] = {"","","","","edi","","","","rdi"};
+// static char *to[9] = {"","","","","eax","","","","rax"};
+static char *from[9] = {"","dil","","","edi","","","","rdi"};
 
 // TODO : 出力にコメントをつける
 void gen_top(){
 
   printf(".intel_syntax noprefix\n");
   printf(".global main\n\n");
-  // .comm
+
+  // for global var
   print_dot_comm();
   
   // init
@@ -176,7 +183,8 @@ void gen_top(){
 
       // The scope changed.
       local_table = create_var_table(get_env_scope(n->name));
-      
+
+      printf(".text\n");
       printf("%s:\n",n->name);
       out("push rbp");
       out("mov rbp, rsp");

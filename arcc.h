@@ -35,7 +35,8 @@ enum{
   TK_AND_EQ,
   TK_OR_EQ,
   TK_XOR_EQ,
-  TK_DO
+  TK_DO,
+  TK_CHAR
 };
 
 enum{
@@ -73,7 +74,7 @@ enum{
 };
 
 typedef struct Type{
-  enum {INT, PTR, ARRAY, FUNC} ty;
+  enum {INT, PTR, ARRAY, FUNC, CHAR} ty;
   struct Type *ptr_of;
   int array_size;
 }Type;
