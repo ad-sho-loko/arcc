@@ -126,6 +126,9 @@ void adjust( Type* type, char *reg){
       sprintf(s, "add %s, %s", reg, reg);
       out(s);
       out(s);
+    }else if(type->ptr_of->ty == CHAR){
+      // sprintf(s, "add %s, %s", reg, reg);
+      // out(s);
     }else{
       sprintf(s, "add %s, %s", reg, reg);
       out(s);
@@ -143,8 +146,17 @@ static void print_dot_comm(){
     if(env->type->ty != FUNC){
       printf(".data\n");
       outf("%s: .zero", name, get_type_sizeof(env->type));
-      // outf(".comm %s, %d", name, get_type_sizeof(env->type));
     }
+  }
+}
+
+static void print_strings(){
+  // TODO : print_dot_commとかぶる
+  out(".data");
+  out(".LC0:");
+  for(int i=0; i<strings->len; i++){
+    char *s = strings->data[i];
+    outf(".string \"%s\"", s);
   }
 }
 
@@ -171,6 +183,7 @@ void gen_top(){
 
   // for global var
   print_dot_comm();
+  print_strings();
   
   // init
   labeler_stack = new_stack();
@@ -350,6 +363,12 @@ void gen(Node *node){
   
   if(node->ty == ND_NUM){
     printf("  push %d\n", node->val);
+    return;
+  }
+
+  if(node->ty == ND_STRING){
+    out("lea rax, .LC0[rip]");
+    out("push rax");
     return;
   }
 

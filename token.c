@@ -13,15 +13,19 @@ static bool is_alnum(char ch){
   return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || (ch >= '0'&& ch <= '9') || (ch == '_');
 }
 
-static bool is_ascii(char ch){
-  return ch >= 0 && ch <= 255;
-}
-
 static Token *new_token(int ty, char* input, int val){
   Token *t = malloc(sizeof(Token));
   t->ty = ty;
   t->input = input;
   t->val = val;
+  return t;
+}
+
+static Token *new_token_string(char *input, char* string){
+  Token *t = malloc(sizeof(Token));
+  t->ty = TK_STRING;
+  t->input = input;
+  t->string = string;
   return t;
 }
 
@@ -206,12 +210,26 @@ Vector *tokenize(char *p){
       p+=2;
       continue;
     }    
-
+    
     if(*p == '\'' && *(p+2) == '\''){
       push_back(tokens, new_token(TK_CHAR, p, *(p+1)));
       p+=3;
       continue;
     }
+
+    if(*p == '"'){
+      int i = 0;
+      char buf[32];
+      p++;
+      while(*p != '"'){
+        buf[i++]  = *p++;
+      }
+      p++;
+      buf[i] = '\0';
+      push_back(tokens, new_token_string(p, strndup(buf, i)));
+      continue;
+    }
+
     
     if(*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' || *p == ')' || *p == '<' || *p == '>' || *p == ';' || *p == '=' || *p == '{' || *p == '}' || *p == ',' || *p == '%' || *p == '&' || *p == '|' || *p == '^' || *p == '~' || *p == '?' || *p == ':' || *p == '[' || *p == ']'){
       push_back(tokens, new_token(*p, p, 0));

@@ -62,6 +62,10 @@ void push_backi(Vector *v, int elm){
   push_back(v, (void*)(intptr_t)elm);
 }
 
+void push_backs(Vector *v, char *str){
+  push_back(v, (void*)str);
+}
+
 void debug_vector_token(Vector *v){
   fprintf(stderr, "======Tokens======\n");
   for(int i=0; i<v->len; i++){
@@ -272,6 +276,7 @@ char* stringfy_token(int tkn_kind){
   case 289: return "TK_XOR_EQ";
   case 290: return "TK_DO";
   case 291: return "TK_CHAR";
+  case 292: return "TK_STRING";
   default: return "Unknown";
   }
 }
@@ -313,6 +318,7 @@ char* stringfy_node(int node_kind){
   case 284: return "ND_DO_WHILE";
   case 285: return "ND_DUMMY";
   case 286: return "ND_IDENT";
+  case 287: return "ND_STRING";
   default: return "Unknown";
   }
 }

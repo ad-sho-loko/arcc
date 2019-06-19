@@ -36,7 +36,8 @@ enum{
   TK_OR_EQ,
   TK_XOR_EQ,
   TK_DO,
-  TK_CHAR
+  TK_CHAR,
+  TK_STRING,
 };
 
 enum{
@@ -71,6 +72,7 @@ enum{
   ND_DO_WHILE,
   ND_DUMMY,
   ND_GIDENT,
+  ND_STRING,
 };
 
 typedef struct Type{
@@ -91,6 +93,7 @@ typedef struct{
   int val;
   char *name;
   char *input;
+  char *string; // for string.
   Type *type; // for pointer.
 } Token;
 
@@ -105,6 +108,7 @@ typedef struct Node{
   struct Node *last; // for(;; xxx)
   Vector *items;
   int val;
+  char* val_string; // for string
   int arg_num;
   int cnt;  // for ***x
   char* name;
@@ -118,6 +122,7 @@ typedef struct{
 // methods for vector.
 Vector *new_vector();
 void push_back(Vector *v, void* elm);
+void push_backs(Vector *v, char* str);
 
 // A simple map
 typedef struct{
@@ -167,6 +172,7 @@ Map *get_env_scope(char *name);
 // global variables.
 extern Vector *nodes;
 extern Vector *tokens;
+extern Vector *strings;
 extern Env *global_env;
 
 void error(char* fmt, ...);

@@ -67,17 +67,22 @@ static Node *new_node_num(int val){
   return n;
 }
 
+static Node *new_node_string(char *string){
+  Node* n = malloc(sizeof(Node));
+  n->ty = ND_STRING;
+  n->val_string = string;
+  return n;
+}
+
 static Node *new_node_ident(char* name){
   Node *n = malloc(sizeof(Node));
   n->ty = ND_IDENT;
-
   if(!map_contains(local_scope, name)){
     if(!map_contains(global_env->map, name)){
       error("parse.c : Line %d \n  ERROR: name '%s' is not defined. ", __LINE__, name);
     }
     n->ty = ND_GIDENT;
   }
-  
   n->name = name;
   return n;
 }
@@ -103,7 +108,6 @@ static Node *new_node_decl_ident(Type* type, char* name){
   if(local_contains(name)){
     error("parse.c : Line %d \n  ERROR: name '%s' is already defined. ", __LINE__, name);
   }
-
   map_putv(local_scope, name, new_var(type, name));
   /* Indeed, No nessesarry to return a node. */
   return new_node_dummy();
@@ -292,8 +296,14 @@ Node* term(){
   }
   
   if(tkn->ty == TK_CHAR){
-    Token *t = expect2(TK_CHAR, "parse.c : Line.%d\n ERROR: expected ");
+    Token *t = expect2(TK_CHAR, "parse.c : Line.%d\n ERROR: expected char.");
     return new_node_num(t->val);
+  }
+
+  if(tkn->ty == TK_STRING){
+    Token *t = expect2(TK_STRING, "parse.c : Line.%d\n ERROR: expected string");
+    push_back(strings, t->string);
+    return new_node_string(t->string);
   }
   
   if(consume(TK_IDENT)){

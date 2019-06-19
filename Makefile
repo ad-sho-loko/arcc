@@ -7,7 +7,7 @@ arcc: $(OBJS)
 
 $(OBJS): arcc.h
 
-test: arcc
+test: arcc test.sh
 		./test.sh
 
 clean:
