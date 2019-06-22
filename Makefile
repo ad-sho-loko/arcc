@@ -1,5 +1,5 @@
 CFLAGS=-Wall -std=c11
-SRCS=$(wildcard *.c)
+SRCS=$(filter-out tmp.c, $(wildcard *.c))
 OBJS=$(SRCS:.c=.o)
 
 arcc: $(OBJS)

@@ -18,12 +18,14 @@ static Token *new_token(int ty, char* input, int val){
   t->ty = ty;
   t->input = input;
   t->val = val;
+  t->name = NULL;
   return t;
 }
 
 static Token *new_token_string(char *input, char* string){
   Token *t = malloc(sizeof(Token));
   t->ty = TK_STRING;
+  t->name = NULL;
   t->input = input;
   t->string = string;
   return t;
@@ -34,6 +36,7 @@ static Token *new_token_op(int ty, char* input){
   t->ty = ty;
   t->input = input;
   t->val = 0;
+  t->name = NULL;
   return t;
 }
 
@@ -42,6 +45,7 @@ static Token *new_token_reserved(int ty, char* input){
   t->ty = ty;
   t->input = input;
   t->val = 0;
+  t->name = NULL;
   return t;
 }
 
@@ -62,6 +66,7 @@ static Token *new_token_type(int type, char* input){
   t->ty = TK_TYPE;
   t->input = input;
   t->val = 0;
+  t->name = NULL;
   t->type = malloc(sizeof(Type));
   t->type->ty = type;
   return t;
@@ -326,6 +331,7 @@ Vector *tokenize(char *p){
     
     error("Line.%d in token.c : cannot tokenize %s", __LINE__, p);
   }
-  push_back(tokens, new_token(TK_EOF, p, 0));
+  
+  push_back(tokens, new_token(TK_EOF, NULL, 0));
   return tokens;
 }

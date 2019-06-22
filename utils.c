@@ -70,8 +70,9 @@ void debug_vector_token(Vector *v){
   fprintf(stderr, "======Tokens======\n");
   for(int i=0; i<v->len; i++){
     Token* t = (Token*)v->data[i];
-    fprintf(stderr, "token[%d]{ ty:%s, input:%s, val:%d, name:%s }\n", i,  stringfy_token(t->ty), t->input, t->val, t->name);
+    fprintf(stderr, "token[%d] ty:%s, val:%d, name:%s, input:%s ", i,  stringfy_token(t->ty), t->val, t->name, t->input);
   }
+  fprintf(stderr, "\n");
 }
 
 void debug_vector_nodes(Vector *v){

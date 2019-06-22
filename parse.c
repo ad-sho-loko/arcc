@@ -46,8 +46,25 @@ static Var *new_var(Type *type, char* name){
   return v;
 }
 
+static Node *malloc_node(){
+  Node *n = malloc(sizeof(Node));
+  n->arg_num = 0;
+  n->cnt = 0;
+  n->cond = NULL;
+  n->lhs = NULL;
+  n->rhs = NULL;
+  n->els = NULL;
+  n->init = NULL;
+  n->name = NULL;
+  n->then = NULL;
+  n->ty = 0;
+  n->val = 0;
+  n->val_string = NULL;
+  return n;
+}
+
 static Node *new_node(int ty, Node *lhs, Node *rhs){
-  Node* n = malloc(sizeof(Node));
+  Node* n = malloc_node();
   n->ty = ty;
   n->lhs = lhs;
   n->rhs = rhs;
@@ -55,13 +72,13 @@ static Node *new_node(int ty, Node *lhs, Node *rhs){
 }
 
 static Node *new_node_empty(int ty){
-  Node * n = malloc(sizeof(Node));
+  Node *n = malloc_node();
   n->ty = ty;
   return n;
 }
 
 static Node *new_node_num(int val){
-  Node* n = malloc(sizeof(Node));
+  Node* n = malloc_node();
   n->ty = ND_NUM;
   n->val = val;
   return n;
@@ -75,7 +92,7 @@ static Node *new_node_string(char *string){
 }
 
 static Node *new_node_ident(char* name){
-  Node *n = malloc(sizeof(Node));
+  Node *n = malloc_node();
   n->ty = ND_IDENT;
   if(!map_contains(local_scope, name)){
     if(!map_contains(global_env->map, name)){
@@ -88,7 +105,7 @@ static Node *new_node_ident(char* name){
 }
 
 static Node *new_node_dummy(){
-  Node* n = malloc(sizeof(Node));
+  Node* n = malloc_node();
   n->ty = ND_DUMMY;
   return n;
 }
@@ -114,7 +131,7 @@ static Node *new_node_decl_ident(Type* type, char* name){
 }
 
 static Node *new_node_call_func(char* name){
-  Node *n = malloc(sizeof(Node));
+  Node *n = malloc_node();
   n->ty = ND_FUNC;
   n->name = name;
   n->items = NULL;
@@ -123,7 +140,7 @@ static Node *new_node_call_func(char* name){
 
 /* Register the function to the current environment. */
 static Node *new_node_decl_func(char *name){
-  Node *n = malloc(sizeof(Node));
+  Node *n = malloc_node();
   n->ty = ND_DEC_FUNC;
   n->arg_num = 0;
   n->name = name;
@@ -503,7 +520,7 @@ Node *block(){
       Node *n = stmt();
       if(n->ty != ND_DUMMY) push_back(v, n);
     }
-    Node *n = malloc(sizeof(Node));
+    Node *n = malloc_node();
     n->ty = ND_BLOCK;
     n->items = v;
     return n;
@@ -612,7 +629,6 @@ void func(Type *type, Token *t){
   
   // A function name
   //Token *t = expect2(TK_IDENT, "Line.%d in parse.c : 関数の宣言から始める必要があります", __LINE__);
-
   Node *n = new_node_decl_func(t->name);
   push_back(nodes, n);
   

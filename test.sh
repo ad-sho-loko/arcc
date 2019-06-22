@@ -5,7 +5,8 @@ try(){
     echo "\033[0;31m[test target : $input]\033[0;39m"
 
     ## build
-    ./arcc "$input" > tmp.s
+    echo "$input" > tmp.c
+    ./arcc tmp.c 1> tmp.s
     gcc -o tmp tmp.s ./test/foo.o
     ./tmp
 
@@ -204,6 +205,6 @@ try 97 'int main(){char* str = "aaa"; return str[2];}'
 try 5 'int a; int main(){a = 5; return a;}'
 try 10 'int a[10]; int main(){a[2] = 10; return a[2];}'
 try 97 "char a; int main(){a = 'a'; return a;}"
-# try 97 'char *s; int main(){s = "aiuea"; return s[4];}'
+try 97 'char *s; int main(){s = "aiuea"; return s[4];}'
 
 echo ok

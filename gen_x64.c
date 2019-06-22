@@ -144,18 +144,16 @@ static void print_dot_comm(){
     char *name = m->keys->data[i];
     EnvDesc* env = m->values->data[i];
     if(env->type->ty != FUNC){
-      printf(".data\n");
       outf("%s: .zero", name, get_type_sizeof(env->type));
     }
   }
 }
 
 static void print_strings(){
-  // TODO : print_dot_commとかぶる
-  out(".data");
-  out(".LC0:");
+  // TODO 1コしか定義できない
   for(int i=0; i<strings->len; i++){
     char *s = strings->data[i];
+    out(".LC0:");
     outf(".string \"%s\"", s);
   }
 }
@@ -180,7 +178,7 @@ void gen_top(){
 
   printf(".intel_syntax noprefix\n");
   printf(".global main\n\n");
-
+  printf(".data\n");
   // for global var
   print_dot_comm();
   print_strings();
@@ -197,7 +195,7 @@ void gen_top(){
       // The scope changed.
       local_table = create_var_table(get_env_scope(n->name));
 
-      printf(".text\n");
+      printf("\n.text\n");
       printf("%s:\n",n->name);
       out("push rbp");
       out("mov rbp, rsp");
