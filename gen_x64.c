@@ -144,7 +144,7 @@ static void print_dot_comm(){
     char *name = m->keys->data[i];
     EnvDesc* env = m->values->data[i];
     if(env->type->ty != FUNC){
-      outf("%s: .zero", name, get_type_sizeof(env->type));
+      outf("%s: .zero %d", name, get_type_sizeof(env->type));
     }
   }
 }
