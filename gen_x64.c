@@ -160,13 +160,16 @@ static void print_strings(){
 
 static Stack *labeler_stack;
 
-// todo : now only unitl 2 args
-static char *regs[2] = {"rdi", "rsi"};
+static char *regs[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
 
 // todo : refactoring
-static char *reg[2][9] = {
-  /* 1st */  {"","dil","","","edi","","","","rdi",},
-  /* 2nd */  {"","sil","","","esi","","","","rsi",}
+static char *reg[6][9] = {
+  {"","dil","","","edi","","","","rdi",},
+  {"","sil","","","esi","","","","rsi",},
+  {"","","","","edx","","","","rdx",},
+  {"","","","","ecx","","","","rcx",},
+  {"","","","","r8d","","","","r8",},
+  {"","","","","r9d","","","","r9",},
 };
 
 static char *mod[9] = {"","BYTE PTR","","","DWORD PTR","","","","QWORD PTR"};

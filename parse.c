@@ -240,7 +240,7 @@ Node* ident(Token *tkn){
   // Using a variable(array).
   if(consume('[')){
     Node *idt = new_node_ident(tkn->name);
-    Node *num = term();
+    Node *num = assign();
     expect(']');
     /** Transform an type of array into a pointer. ex) a[2] => *(a + 2)  **/
     return new_node(ND_DEREF, new_node('+', idt, num), NULL);
@@ -275,9 +275,8 @@ Node* term(){
   // [x] int a = 1, b = 2;
   if(((Token*)(tokens->data[pos]))->ty == TK_TYPE){
     Type *type = parse_type();
-    Token *t = ((Token*)(tokens->data[pos]));
-    expect(TK_IDENT);
-
+    Token *t = expect2(TK_IDENT, "parse.c : Line.%d \n ERROR : Must be an ident after a type declaration.");
+    
     /** Declare and Initialize the array **/
     if(consume('[')){
       Token *num = expect2(TK_NUM, "parse.c : Line %d \n ERROR : A inner of array must be a number.", __LINE__);
@@ -286,12 +285,20 @@ Node* term(){
       return new_node_decl_ident(array, t->name);
     }
 
+    /*
+    if(consume(',')){
+      // TODO 
+      return new_node_decl_ident(type, t->name);
+    }
+    */
+    
     /** Declare and Initialize the ident **/
     if(consume('=')){
       new_node_decl_ident(type, t->name);
       return new_node('=', new_node_ident(t->name), ternary());
     }
 
+    
     /** Declare the ident **/
     return new_node_decl_ident(type, t->name);
   }

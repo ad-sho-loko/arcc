@@ -107,17 +107,20 @@ try 5 'int main(){int a; a = 5; return a--;}'
 try 5 'int main(){int a; int b; a = 5; b = a--; return b;}'
 try 4 'int main(){int a; int b; a = 5; b = a--; return a;}'
 
-# shift
+# shift & bit 
 try 16 'int main(){int a; a = 2; return a << 3;}'
 try 2 'int main(){int a; a = 16; return a >> 3;}'
 try 16 'int main(){int a; a = 2; a <<= 3; return a;}'
 try 2 'int main(){int a; a = 16; a >>= 3; return a;}'
+try 4 'int main(){int a; int b; a = 7; b = 4; return a & b;}'
+try 12 'int main(){return 4 ^ 8;}'
+try 10 'int main(){int a; a = 1; return a ? 10 : 5;}'
+try 5 'int main(){int a; a = 0; return a ? 10 : 5;}'
 
 # while & for
 try 3 'int main(){if(1==0){return 2;}else if(2 == 2){return 3;}else{return 4;}}'
 try 4 'int main(){if(1==0){return 2;}else if(1 == 2){return 3;}else{return 4;}}'
 try 10 'int main(){ if(1==0){return 2;} else if(1 == 0){return 5;} return 10;}'
-
 try 2 'int main(){int a; a = 1; while(a == 1){ a += 1;} return a;}'
 try 5 'int main(){int a; for(a = 1; a<5; a+=1){ a+=1;} return a;}'
 try 1 'int main(){int a; a = 0; do{ a+=1;}while(a > 10); return a;}'
@@ -128,6 +131,14 @@ try 10 'int main(){int a;a = 10; for(;a<100;){return a;}}'
 try 10 'int main(){int a;a = 10; for(;;a+=1){return a;}}'
 try 100 'int main(){int a;a = 1; for(;a<100;){a+=1;} return a;}'
 try 50 'int main(){for(int a = 0; a<100; a++){if(a == 50){break;}} return a;}'
+try 5 'int main(){ int i; i = 0; for(; i < 10; i+=1){if(i == 5) break; } return i;}'
+try 5 'int main(){ int i; i = 0; while(i < 10){if(i == 5) break; i+=1;} return i;}'
+try 9 'int main(){ int a; int i; a = 0; for(i=0; i<10; i+=1){if(i == 5) {continue;} a+=1; } return a; }'
+try 9 'int main(){ int a; int i; i = 0; a = 0; while(i<10){if(i == 5) {i+=1; continue;} i+=1; a+=1; } return a; }'
+try 100 'int main(){int a; int b; int cnt; cnt = 0; for(a = 0; a < 10; a+=1){ for(b = 0; b < 10; b+=1){ cnt++; }} return cnt;}'
+try 5 'int main(){if(1==1){if(1==1){return 5;} return 4;} return 3;}'
+try 4 'int main(){if(1==1){if(1==2){return 5;} return 4;} return 3;}'
+try 3 'int main(){if(1==2){if(1==2){return 5;} return 4;} return 3;}'
 
 # function
 try 5 'int main(){return foo();}'
@@ -144,20 +155,11 @@ try 18 'int bar(int n){return n;} int main(){int a; a = 5; return bar(a+a) + bar
 try 55 'int fib(int n){ if(n == 1 || n == 2) {return 1;} else {return fib(n-1) + fib(n-2);}} int main(){ return fib(10); }'
 try 89 'int fib(int n){ if(n == 1 || n == 2) {return 1;} else {return fib(n-1) + fib(n-2);}} int main(){ return fib(11); }'
 try 89 'int fib(int n){ if(n == 1 || n == 2) {return 1;} return fib(n-1) + fib(n-2);} int main(){ return fib(11); }'
-try 5 'int main(){ int i; i = 0; for(; i < 10; i+=1){if(i == 5) break; } return i;}'
-try 5 'int main(){ int i; i = 0; while(i < 10){if(i == 5) break; i+=1;} return i;}'
-try 9 'int main(){ int a; int i; a = 0; for(i=0; i<10; i+=1){if(i == 5) {continue;} a+=1; } return a; }'
-try 9 'int main(){ int a; int i; i = 0; a = 0; while(i<10){if(i == 5) {i+=1; continue;} i+=1; a+=1; } return a; }'
-try 100 'int main(){int a; int b; int cnt; cnt = 0; for(a = 0; a < 10; a+=1){ for(b = 0; b < 10; b+=1){ cnt++; }} return cnt;}'
-try 5 'int main(){if(1==1){if(1==1){return 5;} return 4;} return 3;}'
-try 4 'int main(){if(1==1){if(1==2){return 5;} return 4;} return 3;}'
-try 3 'int main(){if(1==2){if(1==2){return 5;} return 4;} return 3;}'
-
-try 4 'int main(){int a; int b; a = 7; b = 4; return a & b;}'
-try 12 'int main(){return 4 ^ 8;}'
-
-try 10 'int main(){int a; a = 1; return a ? 10 : 5;}'
-try 5 'int main(){int a; a = 0; return a ? 10 : 5;}'
+try 10 'int add(int a, int b, int c){return a+b+c;} int main(){return add(2,3,5);}'
+try 10 'int add(int a, int b, int c, int d){return a+b+c+d;} int main(){return add(2,3,2,3);}'
+try 10 'int add(int a, int b, int c, int d, int e){return a+b+c+d+e;} int main(){return add(2,3,2,2,1);}'
+try 10 'int add(int a, int b, int c, int d, int e, int f){return a+b+c+d+e+f;} int main(){return add(2,3,2,1,1,1);}'
+# try 10 'int add(int a, int b, int c, int d, int e, int f){return a+b+c+d+e+f;} int main(){return add(2,3,2,1,1,1);}'
 
 # pointer 
 try 3 'int main(){int x; int *y; x = 3; y = &x; return *y;}'
@@ -182,7 +184,7 @@ try 8 'int main(){int *a; return sizeof(a);}'
 try 8 'int main(){return sizeof(int*);}'
 try 40 'int main(){int a[10]; return sizeof(a);}'
 
-# array
+# An array
 try 10 'int main(){int a[10]; a[2] = 10; return a[2];}'
 try 77 'int main(){int a[10]; a[9] = 77; return a[9];}'
 try 55 'int main(){int a[10]; a[0] = 55; return a[0];}'
@@ -192,6 +194,9 @@ try 1 'int main(){int a[2]; int *p; *a = 1; *(a + 1) = 2; p = a; return *p;}'
 try 2 'int main(){int a[2]; int *p; *a = 1; *(a + 1) = 2; p = a; return *(p + 1);}'
 try 3 'int main(){int a[2]; int *p; *a = 1; *(a + 1) = 2; p = a; return *p + *(p + 1);}'
 try 3 'int main(){char x[3]; x[0] = -1; x[1] = 2; int y; y = 4; return x[0] + y;}'
+try 88 'int main(){int x[10]; int y; x[8] = 88; return x[y = 8];}'
+# try 88 'int main(){int x[10]; x[4] = 88; return x[sizeof(int)];'
+
 
 # char
 try 97 "int main(){char ch; ch = 'a'; return ch;}"
