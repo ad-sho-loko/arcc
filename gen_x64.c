@@ -329,6 +329,11 @@ void gen(Node *node){
     }
     Labeler *l = new_labeler(next_label++);
     printf("%s:\n", l->end);
+
+    // it means the switch has DEFAULT.
+    if(node->then != NULL){
+      gen(node->then);
+    }
     return;
   }
   

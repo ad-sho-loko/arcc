@@ -605,6 +605,12 @@ Node *switch_stmt(){
   expect(')');
   expect('{');
   while(!consume('}')){
+    if(consume(TK_DEFAULT)){
+      expect(':');
+      n->then = block();
+      continue;
+    }
+    
     expect(TK_CASE);
     // todo : assert num or char...
     push_back(n->conds, term());

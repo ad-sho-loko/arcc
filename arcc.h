@@ -40,6 +40,7 @@ enum{
   TK_STRING,
   TK_SWITCH,
   TK_CASE,
+  TK_DEFAULT
 };
 
 enum{

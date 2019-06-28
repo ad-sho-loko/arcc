@@ -217,5 +217,6 @@ try 97 'char *s; int main(){s = "aiuea"; return s[4];}'
 # switch
 try 100 'int main(){int a = 1; switch(a){case 0 : return 10; case 1: return 100;}}'
 try 3 "int main(){int a = 'b'; switch(a){case 0 : return 10; case 1: return 100;} return 3;}"
+try 5 "int main(){int a = 'b'; switch(a){case 0 : return 10; case 1: return 100; default: return 5;} return 3;}"
 
 echo ok

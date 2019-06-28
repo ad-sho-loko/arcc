@@ -280,6 +280,7 @@ char* stringfy_token(int tkn_kind){
   case 292: return "TK_STRING";
   case 293: return "TK_SWITCH";
   case 294: return "TK_CASE";
+  case 295: return "TK_DEFAULT";
   default: return "Unknown";
   }
 }

@@ -299,6 +299,12 @@ Vector *tokenize(char *p){
       push_back(tokens, new_token_reserved(TK_BREAK, p));
       p+=5;
       continue;
+    }
+
+    if(keyword(p, "default")){
+      push_back(tokens, new_token_reserved(TK_DEFAULT, p));
+      p+=7;
+      continue;
     }    
 
     if(keyword(p, "continue")){
