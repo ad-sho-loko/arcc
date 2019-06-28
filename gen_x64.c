@@ -314,22 +314,27 @@ void gen(Node *node){
   }
 
   if(node->ty == ND_SWITCH){
+    Vector *labels = new_vector();
+    
     for(int i=0; i<node->conds->len; i++){
       Labeler *l = new_labeler(next_label++);
-      stack_push(labeler_stack, l);
+      push_back(labels, l->start);
       gen(node->cond);
       gen(node->conds->data[i]);
       out("pop rdi");
       out("pop rax");
       out("cmp rdi, rax");
-      outf("jne %s", l->end);
-      gen(node->items->data[i]);
-      printf("%s:\n", l->end);
-      l = stack_pop(labeler_stack);
+      outf("je %s", l->start);
     }
     Labeler *l = new_labeler(next_label++);
+    outf("jmp %s", l->end);
+    
+    for(int i=0; i<node->items->len; i++){
+      printf("%s:\n", labels->data[i]);
+      gen(node->items->data[i]);
+    }
+    
     printf("%s:\n", l->end);
-
     // it means the switch has DEFAULT.
     if(node->then != NULL){
       gen(node->then);
