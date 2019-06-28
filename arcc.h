@@ -38,6 +38,8 @@ enum{
   TK_DO,
   TK_CHAR,
   TK_STRING,
+  TK_SWITCH,
+  TK_CASE,
 };
 
 enum{
@@ -73,6 +75,7 @@ enum{
   ND_DUMMY,
   ND_GIDENT,
   ND_STRING,
+  ND_SWITCH
 };
 
 typedef struct Type{
@@ -107,6 +110,7 @@ typedef struct Node{
   struct Node *init; // for(xxx; ; )
   struct Node *last; // for(;; xxx)
   Vector *items;
+  Vector *conds; // for switch
   int val;
   char* val_string; // for string
   int arg_num;

@@ -264,6 +264,18 @@ Vector *tokenize(char *p){
       p+=7;
       continue;
     }
+
+    if(keyword(p, "switch")){
+      push_back(tokens, new_token_reserved(TK_SWITCH, p));
+      p+=6;
+      continue;
+    }
+
+    if(keyword(p, "case")){
+      push_back(tokens, new_token_reserved(TK_CASE, p));
+      p+=4;
+      continue;
+    }
     
     if(keyword(p, "else")){
       push_back(tokens, new_token_reserved(TK_ELSE, p));

@@ -57,6 +57,8 @@ static Node *malloc_node(){
   n->init = NULL;
   n->name = NULL;
   n->then = NULL;
+  n->conds = new_vector();
+  n->items = new_vector();
   n->ty = 0;
   n->val = 0;
   n->val_string = NULL;
@@ -596,6 +598,22 @@ Node *for_stmt(){
   return n;
 }
 
+Node *switch_stmt(){
+  expect('(');
+  Node *n = new_node_empty(ND_SWITCH);
+  n->cond = assign();
+  expect(')');
+  expect('{');
+  while(!consume('}')){
+    expect(TK_CASE);
+    // todo : assert num or char...
+    push_back(n->conds, term());
+    expect(':');
+    push_back(n->items, block());
+  }
+  return n;
+}
+
 Node *stmt(){
   Node* n;
   if(consume(TK_RETURN)){
@@ -607,6 +625,8 @@ Node *stmt(){
     n = while_stmt();
   }else if(consume(TK_FOR)){
     n = for_stmt();
+  }else if(consume(TK_SWITCH)){
+    n = switch_stmt();
   }else if(consume(TK_DO)){
     n = do_while_stmt();
   }else if(consume(TK_BREAK)){

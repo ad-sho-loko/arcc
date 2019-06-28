@@ -313,6 +313,25 @@ void gen(Node *node){
     return;
   }
 
+  if(node->ty == ND_SWITCH){
+    for(int i=0; i<node->conds->len; i++){
+      Labeler *l = new_labeler(next_label++);
+      stack_push(labeler_stack, l);
+      gen(node->cond);
+      gen(node->conds->data[i]);
+      out("pop rdi");
+      out("pop rax");
+      out("cmp rdi, rax");
+      outf("jne %s", l->end);
+      gen(node->items->data[i]);
+      printf("%s:\n", l->end);
+      l = stack_pop(labeler_stack);
+    }
+    Labeler *l = new_labeler(next_label++);
+    printf("%s:\n", l->end);
+    return;
+  }
+  
   if(node->ty == ND_FOR){
     Labeler *l = new_labeler(next_label);
     next_label++;

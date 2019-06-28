@@ -88,6 +88,7 @@ try 10 'int main(){if(1 & 0){return 5;}else{return 10;}}'
 try 10 'int main(){if (1 == 2 || 2 ==1){return 5;} return 10;}'
 try 99 'int main(){int a;a = 5; if(1 == 1 && a == 5){return 99;}}'
 
+
 # assign & 
 try 4 'int main(){int a;a = 3; a+=1; return a;}'
 try 4 'int main(){int a;a = 5; a-=1; return a;}'
@@ -212,5 +213,9 @@ try 10 'int *a; int main(){int b; b = 10; a = &b; return *a;}'
 try 10 'int a[10]; int main(){a[2] = 10; return a[2];}'
 try 97 "char a; int main(){a = 'a'; return a;}"
 try 97 'char *s; int main(){s = "aiuea"; return s[4];}'
+
+# switch
+try 100 'int main(){int a = 1; switch(a){case 0 : return 10; case 1: return 100;}}'
+try 3 "int main(){int a = 'b'; switch(a){case 0 : return 10; case 1: return 100;} return 3;}"
 
 echo ok

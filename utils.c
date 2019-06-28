@@ -278,6 +278,8 @@ char* stringfy_token(int tkn_kind){
   case 290: return "TK_DO";
   case 291: return "TK_CHAR";
   case 292: return "TK_STRING";
+  case 293: return "TK_SWITCH";
+  case 294: return "TK_CASE";
   default: return "Unknown";
   }
 }
@@ -320,6 +322,7 @@ char* stringfy_node(int node_kind){
   case 285: return "ND_DUMMY";
   case 286: return "ND_IDENT";
   case 287: return "ND_STRING";
+  case 288: return "ND_SWITCH";
   default: return "Unknown";
   }
 }
