@@ -220,6 +220,7 @@ try 3 "int main(){int a = 'a'; switch(a){case 0 : return 10; case 1: return 100;
 try 100 "int main(){int a = 'a'; switch(a){case 'b' : return 10; case 'a': return 100;} return 3;}"
 try 5 "int main(){int a = 'a'; switch(a){case 0 : return 10; case 1: return 100; default: return 5;} return 3;}"
 try 12 "int main(){int a = 10; switch(2){case 2 : a++; case 1: a++; case 0: return a;} return 8;}"
+try 14 "int main(){int a = 10; switch(2){case 2 : a++; a++; case 1: a++; a++; case 0: return a;} return 8;}"
 # try 11 "int main(){int a = 10; switch(2){case 2 : a++; break; case 1: a++; case 0: return a;} return a;}"
 
 echo ok

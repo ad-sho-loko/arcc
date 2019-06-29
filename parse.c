@@ -186,6 +186,10 @@ void assume(int ty){
   }
 }
 
+int is(int ty){
+  return ((Token*)tokens->data[pos])->ty == ty;
+}
+
 int consume(int ty){
   if(((Token*)tokens->data[pos])->ty != ty)
     return 0;
@@ -538,6 +542,40 @@ Node *block(){
   }
 }
 
+Node *switch_block(){
+  Vector *v = new_vector();
+  while(!(is(TK_CASE) || is(TK_DEFAULT) || is('}'))){
+    Node *n = stmt();
+    if(n->ty != ND_DUMMY) push_back(v, n);    
+  }
+  Node *n = malloc_node();
+  n->ty = ND_BLOCK;
+  n->items = v;
+  return n;
+}
+
+Node *switch_stmt(){
+  expect('(');
+  Node *n = new_node_empty(ND_SWITCH);
+  n->cond = assign();
+  expect(')');
+  expect('{');
+  while(!consume('}')){
+    if(consume(TK_DEFAULT)){
+      expect(':');
+      n->then = switch_block();
+      continue;
+    }
+
+    expect(TK_CASE);
+    // todo : assert num or char...
+    push_back(n->conds, term());
+    expect(':');
+    push_back(n->items, switch_block());
+  }
+  return n;
+}
+
 Node *if_stmt(){
   expect('(');
   Node *n = new_node_empty(ND_IF);
@@ -595,28 +633,6 @@ Node *for_stmt(){
   }
   
   n->then = block();
-  return n;
-}
-
-Node *switch_stmt(){
-  expect('(');
-  Node *n = new_node_empty(ND_SWITCH);
-  n->cond = assign();
-  expect(')');
-  expect('{');
-  while(!consume('}')){
-    if(consume(TK_DEFAULT)){
-      expect(':');
-      n->then = block();
-      continue;
-    }
-    
-    expect(TK_CASE);
-    // todo : assert num or char...
-    push_back(n->conds, term());
-    expect(':');
-    push_back(n->items, block());
-  }
   return n;
 }
 
