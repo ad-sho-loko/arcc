@@ -107,14 +107,14 @@ static char *new_label(char *sign, int cnt){
   return s;
 }
 
-static Labeler *new_labeler(int n){
+static Labeler *new_labeler(){
   Labeler *l = malloc(sizeof(Labeler));
-  l->n = n;
-  l->start = new_label("begin", n);
-  l->then = new_label("then", n);
-  l->els = new_label("else", n);
-  l->last = new_label("last", n);
-  l->end = new_label("end", n);
+  l->n = next_label++;
+  l->start = new_label("begin", l->n);
+  l->then = new_label("then", l->n);
+  l->els = new_label("else", l->n);
+  l->last = new_label("last", l->n);
+  l->end = new_label("end", l->n);
   return l;
 }
 
@@ -252,39 +252,36 @@ int gen_lval(Node *node){
 
 void gen(Node *node){  
   if(node->ty == ND_IF){
+    // if statement doesn't need to push item into the stack.
+    Labeler *l = new_labeler();
+    
     gen(node->cond);
     out("pop rax");
     out("cmp rax, 1");
 
-    int lcnt = next_label++;
-    // todo : refactoring. 下を使う.
-    // Env *e = new_env(lcnt);
-    // stack_push(labeler_stack, e);
-    
     if(node->els != NULL){
-      outf("jne %s", new_label("else", lcnt));
+      outf("jne %s", l->els);
     }else{
-      outf("jne %s", new_label("end", lcnt));
+      outf("jne %s", l->end);
     }
-
+    
     // then
     gen(node->then);
-    outf("jmp %s", new_label("end", lcnt));
+    outf("jmp %s", l->end);
     
-    // e = stack_pop(labeler_stack);
     if(node->els != NULL){
-      printf("%s:\n", new_label("else", lcnt));
+      printf("%s:\n", l->els);
       gen(node->els);
     }
-    printf("%s:\n", new_label("end", lcnt));
+
+    printf("%s:\n", l->end);
     return;
   }
 
   if(node->ty == ND_WHILE){
-    Labeler *l = new_labeler(next_label);
-    next_label++;
-
+    Labeler *l = new_labeler();
     stack_push(labeler_stack, l);
+    
     printf("%s:\n", l->start);
     printf("%s:\n", l->last); // forとの互換性のためwhileにも残しているが微妙.
     gen(node->cond);
@@ -293,15 +290,15 @@ void gen(Node *node){
     out("cmp rax, 1");
     outf("jne %s", l->end);
     gen(node->then);
-    l = stack_pop(labeler_stack);
+
     outf("jmp %s", l->start);
     printf("%s:\n", l->end);
+    stack_pop(labeler_stack);
     return;
   }
 
   if(node->ty == ND_DO_WHILE){
-    Labeler *l = new_labeler(next_label);
-    next_label++;
+    Labeler *l = new_labeler();
     stack_push(labeler_stack, l);
     printf("%s:\n", l->start);
     gen(node->then);
@@ -309,16 +306,16 @@ void gen(Node *node){
     out("pop rax");
     out("cmp rax, 1");
     outf("je %s", l->start);
-    l = stack_pop(labeler_stack);
+    stack_pop(labeler_stack);
     return;
   }
 
   if(node->ty == ND_SWITCH){
     Vector *labels = new_vector();
-    stack_push(labeler_stack, new_labeler(next_label++));
+    stack_push(labeler_stack, new_labeler());
     
     for(int i=0; i<node->conds->len; i++){
-      Labeler *l = new_labeler(next_label++);
+      Labeler *l = new_labeler();
       push_back(labels, l->start);
       gen(node->cond);
       gen(node->conds->data[i]);
@@ -328,7 +325,7 @@ void gen(Node *node){
       outf("je %s", l->start);
     }
 
-    Labeler *l = new_labeler(next_label++);
+    Labeler *l = new_labeler();
     outf("jmp %s", l->last);
     
     for(int i=0; i<node->items->len; i++){
@@ -337,20 +334,18 @@ void gen(Node *node){
     }
     
     printf("%s:\n", l->last);
-    // it means the switch has DEFAULT.
+    // DEFAULT.
     if(node->then != NULL){
       gen(node->then);
     }
 
     l = stack_pop(labeler_stack);
-    printf("%s:\n", l->end);    
+    printf("%s:\n", l->end);
     return;
   }
   
   if(node->ty == ND_FOR){
-    Labeler *l = new_labeler(next_label);
-    next_label++;
-
+    Labeler *l = new_labeler();
     stack_push(labeler_stack, l);
     
     if(node->init != NULL){
@@ -366,16 +361,15 @@ void gen(Node *node){
     }
     
     gen(node->then);
-    l = stack_pop(labeler_stack);
     
     printf("%s:\n", l->last);
     if(node->last != NULL){
       gen(node->last);
     }
-    
     outf("jmp %s", l->start);
-    printf("%s:\n", l->end);
 
+    printf("%s:\n", l->end);
+    stack_pop(labeler_stack);
     return; 
   }
 
