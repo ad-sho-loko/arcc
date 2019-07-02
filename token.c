@@ -235,6 +235,23 @@ Vector *tokenize(char *p){
       continue;
     }
 
+    if(*p == '/' && *(p+1) == '/'){
+      p+=2;
+      while(*p != '\n'){
+        p++;
+      }
+      continue;
+    }
+
+    if(*p == '/' && *(p+1) == '*'){
+      char *q = strstr(p+1, "*/");
+      if(!q){
+        error("A comment should be closed.");
+      }
+      p = q + 2;      
+      continue;
+    }
+    
     
     if(*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' || *p == ')' || *p == '<' || *p == '>' || *p == ';' || *p == '=' || *p == '{' || *p == '}' || *p == ',' || *p == '%' || *p == '&' || *p == '|' || *p == '^' || *p == '~' || *p == '?' || *p == ':' || *p == '[' || *p == ']'){
       push_back(tokens, new_token(*p, p, 0));

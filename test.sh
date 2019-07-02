@@ -223,4 +223,8 @@ try 12 "int main(){int a = 10; switch(2){case 2 : a++; case 1: a++; case 0: retu
 try 14 "int main(){int a = 10; switch(2){case 2 : a++; a++; case 1: a++; a++; case 0: return a;} return 8;}"
 try 11 "int main(){int a = 10; switch(2){case 2 : a++; break; case 1: a++; case 0: return a;} return a;}"
 
+# comment
+try 10 'int main(){ // return 1; \n return 10;}'
+try 10 'int main(){ /* return 1; \n */ return 10;}'
+
 echo ok
