@@ -219,17 +219,6 @@ Token *expect2(int ty, char *fmt, ...){
   return t;
 }
 
-static Type *parse_type(){
-  assume(TK_TYPE);
-  Type *type = ((Token*)(tokens->data[pos]))->type;
-  expect(TK_TYPE);
-
-  while(consume('*')){
-    type = wrap_pointer(type);
-  }
-  return type;    
-}
-
 Node* ident(Token *tkn){
   // Calling function.
   if(consume('(')){
@@ -264,6 +253,45 @@ Node* ident(Token *tkn){
   return n;
 }
 
+static Type* read_type(){
+  assume(TK_TYPE);
+  Type *type = ((Token*)(tokens->data[pos]))->type;
+  expect(TK_TYPE);
+
+  while(consume('*')){
+    type = wrap_pointer(type);
+  }
+  return type;    
+}
+
+static Type* read_array(Type *t){
+  if(!consume('[')) return t;
+
+  Token *num = expect2(TK_NUM, "parse.c : Line %d \n ERROR : A inner of array must be a number.", __LINE__);
+  Type *array = wrap_array(t, num->val);
+  expect2(']', "parse.c : Line %d \n ERROR: An array must be closed.", __LINE__);
+
+  return array;
+}
+
+static Node* decl_type(){
+  Type *type = read_type();
+  Node *n;
+  do{
+    Token *t = expect2(TK_IDENT, "parse.c : Line.%d \n ERROR : Must be an ident after a type declaration.");
+    type = read_array(type);
+    n = new_node_decl_ident(type, t->name);
+    
+    if(consume('=')){
+      n = new_node('=', new_node_ident(t->name), ternary());
+      push_back(nodes, n);
+    }
+    
+  }while(consume(','));
+  
+  return n;
+}
+
 Node* term(){
   if(consume('(')){
     Node *n = assign();
@@ -273,40 +301,8 @@ Node* term(){
     return n;
   }
 
-  // The progress of implemention.
-  // [o] int a;
-  // [o] int a = 1;
-  // [x] int a, b;
-  // [x] int a = 1, b;
-  // [x] int a = 1, b = 2;
   if(((Token*)(tokens->data[pos]))->ty == TK_TYPE){
-    Type *type = parse_type();
-    Token *t = expect2(TK_IDENT, "parse.c : Line.%d \n ERROR : Must be an ident after a type declaration.");
-    
-    /** Declare and Initialize the array **/
-    if(consume('[')){
-      Token *num = expect2(TK_NUM, "parse.c : Line %d \n ERROR : A inner of array must be a number.", __LINE__);
-      Type *array = wrap_array(type, num->val);
-      expect2(']', "parse.c : Line %d \n ERROR: An array must be closed.", __LINE__);
-      return new_node_decl_ident(array, t->name);
-    }
-
-    /*
-    if(consume(',')){
-      // TODO 
-      return new_node_decl_ident(type, t->name);
-    }
-    */
-    
-    /** Declare and Initialize the ident **/
-    if(consume('=')){
-      new_node_decl_ident(type, t->name);
-      return new_node('=', new_node_ident(t->name), ternary());
-    }
-
-    
-    /** Declare the ident **/
-    return new_node_decl_ident(type, t->name);
+    return decl_type();
   }
 
   /** Areressing **/
@@ -363,7 +359,7 @@ Node* unary(){
     int need_close = consume('(');
 
     if(((Token*)(tokens->data[pos]))->ty == TK_TYPE){
-      Type *type = parse_type();
+      Type *type = read_type();
       if(need_close) expect2(')', "parse.c : Line.%d\n  ERROR : sizeofの括弧が閉じられていません ", __LINE__);
       return new_node_num(get_type_sizeof(type));
     }
@@ -687,10 +683,10 @@ void func(Type *type, Token *t){
   // Dummy Arguments
   expect('(');
   while(((Token*)tokens->data[pos])->ty != ')'){
-    assume(TK_TYPE);
-    push_back(n->items, term());
+    Type *type = read_type();
+    Token *ident = expect2(TK_IDENT, "parse.c : Line.%d \n ERROR : Must be an ident after a type declaration.");
+    new_node_decl_ident(type, ident->name);
     consume(',');
-    // todo : refine.
     n->arg_num++;
   }
   expect(')');
@@ -704,19 +700,15 @@ void func(Type *type, Token *t){
 
 // Declare a global variable.
 void global_var(Type *type, Token *token){
-  if(consume('[')){
-    Token *num = expect2(TK_NUM, "parse.c : Line %d \n ERROR : A inner of array must be a number.", __LINE__);
-    type = wrap_array(type, num->val);
-    expect(']');
-  }
   new_node_decl_global_ident(type, token->name);
   expect(';');
 }
 
 void toplevel(){
   while(tkn()->ty != TK_EOF){
-    Type *type = parse_type();
+    Type *type = read_type();    
     Token *token =expect2(TK_IDENT, "Line.%d in parse.c : 関数の宣言から始める必要があります", __LINE__);
+    type = read_array(type);
 
     if(tkn()->ty =='('){
       func(type, token);
